@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin • Myaffilinks.io</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#f97316',
+            primaryDark: '#c2410c',
+            bgDark: '#0f0f0f',
+            card: '#1a1a1a',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-bgDark text-gray-100 min-h-screen">
+
+  <!-- NAVBAR ADMIN -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <span class="text-2xl font-bold text-red-500">ADMIN</span>
+        <span class="text-sm text-gray-400">Myaffilinks.io</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="nos-affilinks.html" class="hover:text-primary">Voir le site</a>
+        <button onclick="localStorage.clear(); window.location.href='login.html'" 
+                class="bg-red-900/40 text-red-300 px-5 py-2 rounded-full hover:bg-red-800/60">
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="pt-24 pb-16 px-6 max-w-7xl mx-auto grid lg:grid-cols-12 gap-8">
+
+    <!-- MENU LATÉRAL -->
+    <aside class="lg:col-span-3">
+      <div class="bg-card rounded-2xl border border-gray-800 p-6 sticky top-24">
+        <h2 class="text-2xl font-bold text-red-400 mb-8">Administration</h2>
+        <nav class="space-y-2 text-sm">
+          <button data-tab="preview"    class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 tab-btn active:bg-primary/20 active:text-primary">Prévisualisation live</button>
+          <button data-tab="theme"      class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 tab-btn">Thème & Couleurs</button>
+          <button data-tab="images"     class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 tab-btn">Images</button>
+          <button data-tab="offers"     class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 tab-btn">Offres Affilinks</button>
+          <button data-tab="users"      class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 tab-btn">Utilisateurs</button>
+          <button data-tab="transactions"class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 tab-btn">Transactions & Liens</button>
+          <button data-tab="stats"      class="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 tab-btn">Statistiques</button>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- CONTENU -->
+    <main class="lg:col-span-9 space-y-10">
+
+      <!-- Onglet Prévisualisation -->
+      <div id="tab-preview" class="tab-content">
+        <h2 class="text-3xl font-bold mb-6">Prévisualisation en direct</h2>
+        <p class="text-gray-400 mb-6">Clique sur les éléments pour les modifier (simulation – à connecter au vrai backend)</p>
+        
+        <div class="border border-gray-700 rounded-2xl overflow-hidden bg-black/40 backdrop-blur-sm" style="height: 70vh; resize: vertical; overflow: auto;">
+          <iframe id="live-preview" src="nos-affilinks.html" class="w-full h-full border-0"></iframe>
+        </div>
+      </div>
+
+      <!-- Onglet Thème -->
+      <div id="tab-theme" class="tab-content hidden">
+        <h2 class="text-3xl font-bold mb-6">Personnalisation du thème</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div>
+            <label class="block text-gray-300 mb-2">Couleur primaire</label>
+            <input type="color" id="color-primary" value="#f97316" class="w-20 h-12 bg-transparent rounded">
+          </div>
+          <!-- Ajoute d'autres couleurs ici -->
+        </div>
+        <button class="mt-8 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl font-bold">
+          Sauvegarder & Publier
+        </button>
+      </div>
+
+      <!-- Les autres onglets sont vides pour l'instant – structure prête -->
+      <div id="tab-images"       class="tab-content hidden">Images + upload (à implémenter)</div>
+      <div id="tab-offers"       class="tab-content hidden">Gestion offres (tableau CRUD)</div>
+      <div id="tab-users"        class="tab-content hidden">Liste utilisateurs + recherche</div>
+      <div id="tab-transactions" class="tab-content hidden">Transactions</div>
+      <div id="tab-stats"        class="tab-content hidden">
+        <canvas id="revenueChart" class="max-h-96"></canvas>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-black border-t border-gray-800 py-6 text-center text-gray-500">
+    <p>Admin Myaffilinks.io • © 2026</p>
+  </footer>
+
+  <script>
+    // Gestion des onglets
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'bg-primary/20', 'text-primary'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        
+        btn.classList.add('active', 'bg-primary/20', 'text-primary');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+      });
+    });
+
+    // Exemple graphique simple
+    setTimeout(() => {
+      if (document.getElementById('revenueChart')) {
+        new Chart(document.getElementById('revenueChart'), {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+            datasets: [{
+              label: 'Chiffre d‘affaires (€)',
+              data: [1200, 1900, 3000, 4200, 5100, 6800],
+              borderColor: '#f97316',
+              tension: 0.3,
+              fill: false
+            }]
+          },
+          options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+      }
+    }, 500);
+  </script>
+
+</body>
+</html>

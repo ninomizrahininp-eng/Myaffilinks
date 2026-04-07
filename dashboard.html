@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord - Myaffilinks.io</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js CDN -->
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#f97316',
+            primaryDark: '#c2410c',
+            bgDark: '#0f0f0f',
+            card: '#1a1a1a',
+            accent: '#fb923c',
+          },
+          animation: {
+            'glow': 'glow 3s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            glow: {
+              '0%': { textShadow: '0 0 10px #fb923c33, 0 0 20px #fb923c66, 0 0 40px #fb923c99' },
+              '100%': { textShadow: '0 0 20px #fb923c66, 0 0 40px #fb923c99, 0 0 80px #fb923ccc' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/css">@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}</style>
+</head>
+<body class="bg-bgDark text-gray-100 min-h-screen font-sans antialiased">
+
+  <!-- NAVBAR (comme avant) -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl font-bold text-primary">Myaffilinks</span>
+        <span class="text-sm text-gray-400">.io</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="nos-affilinks.html" class="hover:text-primary transition">Nos affilinks</a>
+        <a href="dashboard.html" class="text-primary font-medium">Tableau de bord</a>
+        <a href="passer-au-plan-superieur.html" class="hover:text-primary transition">Passer au plan supérieur</a>
+        <a href="mon-compte.html" class="hover:text-primary transition">Mon compte</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-gray-400">Bonjour, palestineibzn</span>
+        <button 
+  onclick="localStorage.clear(); window.location.href='login.html';"
+  class="bg-primary/20 text-primary px-4 py-2 rounded-full text-sm hover:bg-primary/40 transition"
+>
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="pt-24 pb-16 px-6 max-w-7xl mx-auto">
+
+    <!-- HEADER -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-6xl font-extrabold animate-glow mb-4">Tableau de bord</h1>
+      <p class="text-xl text-gray-400">Suis les performances de tes liens d’affiliation et gère tes campagnes</p>
+    </div>
+
+    <!-- STATS CARTES (comme avant) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
+        <div class="text-4xl mb-2">🖱️</div>
+        <h3 class="text-lg font-medium text-gray-300">Nombre total de clics</h3>
+        <p class="text-4xl font-bold text-primary mt-3">30 000</p>
+      </div>
+      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
+        <div class="text-4xl mb-2">🛒</div>
+        <h3 class="text-lg font-medium text-gray-300">Ventes totales</h3>
+        <p class="text-4xl font-bold text-primary mt-3">66</p>
+      </div>
+      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
+        <div class="text-4xl mb-2">$</div>
+        <h3 class="text-lg font-medium text-gray-300">Revenu total</h3>
+        <p class="text-4xl font-bold text-primary mt-3">116 €</p>
+        <button class="mt-4 bg-primary/20 text-primary px-5 py-2 rounded-full text-sm hover:bg-primary hover:text-black transition">
+          💰 Retrait
+        </button>
+      </div>
+      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
+        <div class="text-4xl mb-2">🏆</div>
+        <h3 class="text-lg font-medium text-gray-300">Classement</h3>
+        <p class="text-4xl font-bold text-primary mt-3">98<sup>ème</sup></p>
+      </div>
+    </div>
+
+    <!-- ANALYSES PERFORMANCES -->
+    <div class="bg-card rounded-2xl border border-gray-800 p-8 mb-12">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h2 class="text-3xl font-bold">Analyses des performances</h2>
+        <button class="bg-primary/20 text-primary px-6 py-3 rounded-full hover:bg-primary hover:text-black transition flex items-center gap-2">
+          <span>🔄</span> Rafraîchir
+        </button>
+      </div>
+
+      <!-- Filtres -->
+      <div class="flex flex-wrap gap-4 mb-10">
+        <button class="bg-primary text-black px-5 py-2.5 rounded-full font-medium">Par offre</button>
+        <button class="bg-card border border-gray-700 px-5 py-2.5 rounded-full hover:border-primary transition">Par société</button>
+        <input type="text" placeholder="Recherche de liens..." class="flex-1 min-w-[200px] bg-gray-900 border border-gray-700 rounded-full px-6 py-3 focus:outline-none focus:border-primary">
+        <select class="bg-gray-900 border border-gray-700 rounded-full px-6 py-3">
+          <option>Trier par...</option>
+          <option>Clics ↓</option>
+          <option>Ventes ↓</option>
+          <option>Revenus ↓</option>
+        </select>
+        <button class="bg-primary text-black px-8 py-3 rounded-full font-medium hover:bg-primaryDark transition">Rechercher</button>
+      </div>
+
+      <!-- Exemple de lien -->
+      <div class="bg-gray-900/70 p-6 rounded-xl border border-gray-700 mb-10">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-2xl">😊</div>
+              <h3 class="text-xl font-bold">Offre de parrainage - Commission de 26%</h3>
+            </div>
+            <p class="text-gray-400">Ali Express</p>
+            <div class="flex items-center gap-2 mt-1">
+              <a href="#" class="text-primary hover:underline break-all">https://www.aliexpress.com/useraffilinksN34</a>
+              <button class="text-gray-400 hover:text-white">📋</button>
+            </div>
+          </div>
+          <button class="bg-primary/10 border border-primary/30 text-primary px-6 py-3 rounded-full hover:bg-primary hover:text-black transition">
+            Voir les détails
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div><p class="text-gray-400">Clics</p><p class="text-2xl font-bold">30 000</p></div>
+          <div><p class="text-gray-400">Ventes estimées</p><p class="text-2xl font-bold">66</p></div>
+          <div><p class="text-gray-400">Revenus</p><p class="text-2xl font-bold text-primary">116 €</p></div>
+          <div><p class="text-gray-400">Depuis le</p><p class="text-lg">16 janvier 2026</p></div>
+        </div>
+      </div>
+
+      <!-- GRAPH 1 : Line chart - Clics & Ventes sur 30 jours -->
+      <div class="mb-12">
+        <h3 class="text-2xl font-bold mb-6 text-center md:text-left">Évolution des clics et ventes</h3>
+        <div class="bg-gray-950 p-6 rounded-xl border border-gray-800">
+          <canvas id="lineChart" height="140"></canvas>
+        </div>
+      </div>
+
+      <!-- GRAPH 2 : Bar chart - Moyenne par heure -->
+      <div>
+        <h3 class="text-2xl font-bold mb-6 text-center md:text-left">Moyenne clics / ventes par heure de la journée</h3>
+        <div class="bg-gray-950 p-6 rounded-xl border border-gray-800">
+          <canvas id="barChart" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="bg-black border-t border-gray-800 py-8 text-center text-gray-500">
+    <p>Myaffilinks.io • POURQUOI PAS TOI • © 2026</p>
+  </footer>
+
+  <!-- SCRIPT CHARTS -->
+  <script>
+    // Données exemple (tu pourras les remplacer par fetch API plus tard)
+    const dates = ["Jan 01","Jan 02","Jan 03","Jan 04","Jan 05","Jan 06","Jan 07","Jan 08","Jan 09","Jan 10","Jan 11","Jan 12","Jan 13","Jan 14","Jan 15","Jan 16","Jan 17","Jan 18","Jan 19","Jan 20","Jan 21","Jan 22","Jan 23","Jan 24","Jan 25","Jan 26","Jan 27","Jan 28","Jan 29","Jan 30"];
+    
+    const clicksData = [868,1833,1932,794,509,939,1438,1397,1126,645,523,2006,931,766,1964,1435,463,775,475,1727,1403,775,2154,2098,599,1727,1038,895,907,915];
+    const salesData  = [10,5,3,8,11,12,4,1,2,7,9,5,8,8,10,10,1,9,5,2,3,5,1,11,12,2,7,3,1,8];
+
+    // Line Chart
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [
+          {
+            label: 'Clics (×1000)',
+            data: clicksData.map(v => v / 1000),
+            borderColor: '#fb923c',
+            backgroundColor: 'rgba(251, 146, 60, 0.2)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Ventes',
+            data: salesData,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Clics (milliers)' } },
+          y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Ventes' }, grid: { drawOnChartArea: false } },
+          x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+        },
+        plugins: { legend: { position: 'top' } }
+      }
+    });
+
+    // Bar Chart - Moyenne par heure (données fictives réalistes)
+    const hours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2,'0')}h`);
+    const avgClicksPerHour = [45,32,28,35,48,72,115,168,195,220,185,162,148,175,210,245,198,165,132,98,75,62,55,48];
+    const avgSalesPerHour = [2,1,0,1,3,5,8,12,15,18,14,11,9,12,15,19,16,13,10,7,5,3,2,1];
+
+    new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: hours,
+        datasets: [
+          {
+            label: 'Clics moyens',
+            data: avgClicksPerHour,
+            backgroundColor: 'rgba(251, 146, 60, 0.6)',
+            borderColor: '#fb923c',
+            borderWidth: 1
+          },
+          {
+            label: 'Ventes moyennes',
+            data: avgSalesPerHour,
+            backgroundColor: 'rgba(239, 68, 68, 0.6)',
+            borderColor: '#ef4444',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+          x: { grid: { display: false } }
+        },
+        plugins: { legend: { position: 'top' } }
+      }
+    });
+  </script>
+
+</body>
+</html>
