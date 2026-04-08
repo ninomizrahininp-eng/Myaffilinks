@@ -1,148 +1,82 @@
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Connexion avec email - Myaffilinks.io</title>
- 
+  <title>Debug Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: '#f97316',
-            primaryDark: '#c2410c',
-          },
-          fontFamily: {
-            nunito: ['Nunito', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body class="p-8 bg-gray-50">
 
-  <div class="flex min-h-screen">
-    <!-- GAUCHE : Image + POURQUOI PAS TOI -->
-    <div class="hidden lg:block lg:w-1/2 p-8 xl:p-14 bg-gray-50">
-      <div class="h-[94vh] mx-auto max-w-[52vw] xl:max-w-[620px] mt-[-5vh] relative">
-        <div class="relative w-full h-full rounded-3xl overflow-hidden shadow-[0_30px_70px_-12px_rgba(0,0,0,0.55)] ring-1 ring-black/5 bg-white">
-          <img src="/images/loginimage.png" alt="Motivation" class="absolute inset-0 w-full h-full object-cover">
-          <div class="absolute inset-0 flex items-start justify-center p-6 md:p-8 lg:p-10 xl:p-12 pointer-events-none">
-            <h2 class="font-nunito font-light 
-                       text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-4xl
-                       tracking-[0.04em] sm:tracking-[0.05em] md:tracking-[0.06em] lg:tracking-[0.08em] xl:tracking-[0.15em]
-                       whitespace-nowrap
-                       text-[#f97316] drop-shadow-[0_5px_12px_rgba(0,0,0,0.6)] leading-none"
-                style="text-shadow: 
-                  0 3px 6px rgba(0,0,0,0.5),
-                  0 8px 16px rgba(0,0,0,0.35),
-                  0 16px 32px rgba(0,0,0,0.25);">
-              POURQUOI PAS TOI
-            </h2>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow">
+    <h1 class="text-2xl font-bold mb-6 text-center">Debug Connexion Supabase</h1>
+    
+    <div id="status" class="p-4 bg-gray-100 rounded mb-6 text-sm font-mono whitespace-pre-wrap"></div>
 
-    <!-- DROITE : Formulaire -->
-    <div class="flex-1 flex items-center justify-center p-8">
-      <div class="w-full max-w-md">
-        <div class="text-center mb-10">
-          <img src="/images/logoorange.svg" alt="Logo" class="mx-auto h-10 mb-4">
-          <h1 class="text-3xl font-bold text-gray-900">Connexion avec email</h1>
-        </div>
-
-        <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6"></div>
-
-        <form id="login-form" class="space-y-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-            <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
-          </div>
-          <button type="submit" class="w-full bg-primary hover:bg-primaryDark text-white font-semibold py-4 rounded-xl transition-all">
-            Se connecter
-          </button>
-        </form>
-
-        <div class="text-center mt-8">
-          <a href="login.html" class="text-gray-500 hover:text-gray-700">← Retour à la page de connexion</a>
-        </div>
-      </div>
-    </div>
+    <form id="form" class="space-y-4">
+      <input type="email" id="email" value="ninomizrahininp@gmail.com" class="w-full p-3 border rounded">
+      <input type="password" id="password" placeholder="Mot de passe" class="w-full p-3 border rounded">
+      <button type="submit" class="w-full bg-orange-500 text-white py-3 rounded font-medium">Se connecter (Debug)</button>
+    </form>
   </div>
 
   <script type="module">
     import { supabase } from '/supabase/client.js'
 
-    const form = document.getElementById('login-form')
-    const errorMsg = document.getElementById('error-message')
+    const status = document.getElementById('status')
+    const form = document.getElementById('form')
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
-
       const email = document.getElementById('email').value.trim()
       const password = document.getElementById('password').value
 
-      errorMsg.classList.add('hidden')
+      status.innerHTML = '🔄 Connexion en cours...\n'
 
       try {
-        // 1. Connexion
         const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
         if (authError) {
-          errorMsg.textContent = authError.message || "Email ou mot de passe incorrect"
-          errorMsg.classList.remove('hidden')
+          status.innerHTML += `❌ Auth failed: ${authError.message}\n`
           return
         }
+        status.innerHTML += `✅ Auth OK\n`
 
-        // 2. Récupérer le profil (avec plus de logs)
-        const { data: profile, error: profileError } = await supabase
+        status.innerHTML += `🔍 Recherche profil pour email: ${email}\n`
+
+        const { data: profile, error: pError } = await supabase
           .from('profiles')
-          .select('role')
+          .select('*')
           .eq('email', email)
           .single()
 
-        if (profileError) {
-          console.error("Profile Error:", profileError)
-          errorMsg.textContent = "Erreur lors de la récupération du profil"
-          errorMsg.classList.remove('hidden')
+        if (pError) {
+          status.innerHTML += `❌ Profile query error: ${pError.message}\n`
+          console.error(pError)
           return
         }
 
         if (!profile) {
-          errorMsg.textContent = "Profil non trouvé dans la base"
-          errorMsg.classList.remove('hidden')
+          status.innerHTML += `❌ Aucune ligne trouvée pour cet email\n`
           return
         }
 
-        // 3. Redirection selon le rôle (correction renforcée)
-        console.log("Rôle détecté :", profile.role)
+        status.innerHTML += `✅ Profil trouvé !\n`
+        status.innerHTML += `Role = ${profile.role}\n`
+        status.innerHTML += `ID = ${profile.id}\n`
 
-        if (profile.role === 'admin' || profile.role === 'Admin') {   // On accepte aussi 'Admin' avec majuscule
-          alert("✅ Connexion Admin réussie ! Bienvenue dans le panneau d'administration")
-          window.location.href = 'admin.html'
+        if (profile.role === 'admin' || profile.role?.toLowerCase() === 'admin') {
+          status.innerHTML += `🎉 Redirection vers admin.html\n`
+          setTimeout(() => window.location.href = 'admin.html', 1500)
         } else {
-          alert("✅ Connexion réussie !")
-          window.location.href = 'nos-affilinks.html'
+          status.innerHTML += `Redirection vers nos-affilinks.html\n`
+          setTimeout(() => window.location.href = 'nos-affilinks.html', 1500)
         }
 
       } catch (err) {
+        status.innerHTML += `❌ Erreur générale: ${err.message}\n`
         console.error(err)
-        errorMsg.textContent = "Erreur de connexion. Vérifiez vos identifiants."
-        errorMsg.classList.remove('hidden')
       }
     })
   </script>
-
 </body>
 </html>
