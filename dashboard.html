@@ -1,257 +1,384 @@
-<!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tableau de bord - Myaffilinks.io</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js CDN -->
-  
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: '#f97316',
-            primaryDark: '#c2410c',
-            bgDark: '#0f0f0f',
-            card: '#1a1a1a',
-            accent: '#fb923c',
-          },
-          animation: {
-            'glow': 'glow 3s ease-in-out infinite alternate',
-          },
-          keyframes: {
-            glow: {
-              '0%': { textShadow: '0 0 10px #fb923c33, 0 0 20px #fb923c66, 0 0 40px #fb923c99' },
-              '100%': { textShadow: '0 0 20px #fb923c66, 0 0 40px #fb923c99, 0 0 80px #fb923ccc' },
-            }
-          }
-        }
-      }
+<!-- GUARD -->
+<script>
+  if (window.self === window.top && !window.__username) {
+    window.location.replace('/navbarvisit.html');
+  }
+</script>
+
+<main class="pt-20 pb-14 px-5 max-w-6xl mx-auto" data-edit-id="dash-main">
+
+  <!-- HERO -->
+  <div class="mb-8 fade-up" data-edit-id="dash-hero">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="section-tag">⚡ Live</span>
+    </div>
+    <h1 class="text-3xl md:text-4xl font-light tracking-tight text-white mb-1" data-edit-id="dash-title">
+      Tableau de bord
+    </h1>
+    <p class="text-gray-500 text-xs max-w-lg" data-edit-id="dash-subtitle">
+      Suis les performances de tes liens d'affiliation et gère tes campagnes en temps réel.
+    </p>
+  </div>
+
+  <!-- STATS -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8" data-edit-id="dash-stats-grid">
+
+    <div class="stat-card p-4" data-edit-id="dash-stat-clics">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-base">🖱️</span>
+        <span id="dash-clicks-badge" class="text-[10px] font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">—</span>
+      </div>
+      <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Clics totaux</p>
+      <p class="text-2xl font-light text-white num" id="dash-stat-clics-value">0</p>
+    </div>
+
+    <div class="stat-card p-4" data-edit-id="dash-stat-ventes">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-base">🛒</span>
+        <span class="text-[10px] font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">+8%</span>
+      </div>
+      <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Ventes totales</p>
+      <p class="text-2xl font-light text-white num" data-edit-id="dash-stat-ventes-value">0</p>
+    </div>
+
+    <div class="stat-card p-4" data-edit-id="dash-stat-revenu">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-base text-primary">€</span>
+        <span class="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+5%</span>
+      </div>
+      <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Revenu total</p>
+      <p class="text-2xl font-light text-primary num" data-edit-id="dash-stat-revenu-value">0 €</p>
+      <button onclick="if(window.spaLoadPage) window.spaLoadPage('/pagesvisit/retrait.html'); else window.location.href='/pagesvisit/retrait.html'" class="btn-ghost mt-3 px-3 py-1.5 text-xs w-full" data-edit-id="dash-stat-revenu-btn">
+        💰 Retrait
+      </button>
+    </div>
+
+    <div class="stat-card p-4 cursor-pointer" data-edit-id="dash-stat-rank"
+         onclick="if(window.spaLoadPage) window.spaLoadPage('/pagesvisit/classement.html'); else window.location.href='/pagesvisit/classement.html'">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-base">🏆</span>
+        <span class="text-[10px] font-semibold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full">—</span>
+      </div>
+      <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Classement</p>
+      <p class="text-2xl font-light text-white num" id="dash-stat-rank-value">—</p>
+      <div class="flex justify-end mt-4">
+        <span class="text-primary text-xs font-medium hover:text-orange-300 transition">Voir le classement →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MES LIENS — Tracking par offre -->
+  <div class="rs-card rounded-2xl p-6 mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+      <div>
+        <span class="section-tag mb-2 inline-flex">🔗 Mes liens trackés</span>
+        <h2 class="text-sm font-normal text-gray-300">Clics par lien d'affiliation</h2>
+      </div>
+      <button onclick="loadMyLinks()" class="btn-ghost px-4 py-2 text-xs flex items-center gap-2">
+        <span>🔄</span> Rafraîchir
+      </button>
+    </div>
+
+    <!-- Tableau des liens -->
+    <div id="my-links-container">
+      <div class="flex items-center justify-center py-10 text-gray-600">
+        <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mr-3"></div>
+        <span class="text-xs uppercase tracking-wider">Chargement…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYSES -->
+  <div class="rs-card rounded-2xl p-6 mb-8" data-edit-id="dash-analyses">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3" data-edit-id="dash-analyses-header">
+      <div>
+        <span class="section-tag mb-2 inline-flex">📊 Analytics</span>
+        <h2 class="text-sm font-normal text-gray-300" data-edit-id="dash-analyses-title">Performances globales</h2>
+      </div>
+      <button class="btn-ghost px-4 py-2 text-xs flex items-center gap-2" data-edit-id="dash-analyses-refresh">
+        <span>🔄</span> Rafraîchir
+      </button>
+    </div>
+
+    <!-- Charts côte à côte -->
+    <div class="grid md:grid-cols-2 gap-4" data-edit-id="dash-charts-grid">
+
+      <div class="rounded-xl border border-white/5 bg-black/30 p-4" data-edit-id="dash-chart-line-wrap">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-[10px] text-gray-500 uppercase tracking-wider">Clics / jour (30 derniers jours)</p>
+          <button onclick="expandChart('line')" class="text-gray-600 hover:text-gray-300 text-base transition px-2 py-0.5 rounded-lg hover:bg-white/5 leading-none" title="Agrandir">⤢</button>
+        </div>
+        <canvas id="lineChart" height="90"></canvas>
+      </div>
+
+      <div class="rounded-xl border border-white/5 bg-black/30 p-4" data-edit-id="dash-chart-bar-wrap">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-[10px] text-gray-500 uppercase tracking-wider">Clics par offre</p>
+          <button onclick="expandChart('bar')" class="text-gray-600 hover:text-gray-300 text-base transition px-2 py-0.5 rounded-lg hover:bg-white/5 leading-none" title="Agrandir">⤢</button>
+        </div>
+        <canvas id="barChart" height="90"></canvas>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Modal expand -->
+<div id="chart-modal" class="fixed inset-0 z-[9999] flex items-center justify-center hidden" onclick="if(event.target===this)closeModal()">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+  <div class="relative bg-[#111] border border-white/8 rounded-2xl p-6 w-[90vw] max-w-3xl shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <p id="modal-chart-title" class="text-[10px] text-gray-500 uppercase tracking-wider"></p>
+      <button onclick="closeModal()" class="text-gray-500 hover:text-white text-lg leading-none transition">✕</button>
+    </div>
+    <canvas id="modalChart" height="200"></canvas>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="py-7 text-center">
+  <div class="flex items-center justify-center gap-2 mb-2">
+    <div class="flex flex-col items-end">
+      <img src="/images/logoblanc.svg" alt="MyAffilinks.io" class="h-4 w-auto object-contain" />
+      <span class="mt-0.5 pr-0.5 text-[6px] font-medium tracking-[0.15em] text-gray-400 whitespace-nowrap">POURQUOI PAS TOI</span>
+    </div>
+  </div>
+  <p class="text-gray-600 text-xs">© 2026</p>
+</footer>
+
+<script type="module">
+  import { supabase } from '/supabase/client.js'
+
+  // ── State global pour les charts ─────────────────────────────────────────
+  let lineConfigData = null
+  let barConfigData  = null
+  let modalChart     = null
+
+  Chart.defaults.color       = 'rgba(255,255,255,0.28)'
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.04)'
+  Chart.defaults.font        = { size: 9, family: "'DM Sans', sans-serif" }
+
+  const lineOptions = {
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    scales:{
+      y:{ beginAtZero:true, grid:{color:'rgba(255,255,255,0.03)'}, title:{display:true,text:'Clics',font:{size:8}} },
+      x:{ grid:{color:'rgba(255,255,255,0.03)'}, ticks:{maxRotation:0,maxTicksLimit:6} }
+    },
+    plugins:{legend:{display:false}}
+  }
+
+  const barOptions = {
+    responsive:true,
+    indexAxis:'y',
+    scales:{
+      x:{ beginAtZero:true, grid:{color:'rgba(255,255,255,0.03)'} },
+      y:{ grid:{display:false}, ticks:{font:{size:9}} }
+    },
+    plugins:{legend:{display:false}}
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+  async function init() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Charger profil + stats
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('total_clicks, total_sales, total_revenue, username')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profile) {
+      document.getElementById('dash-stat-clics-value').textContent =
+        (profile.total_clicks || 0).toLocaleString('fr-FR')
+      const salesEl = document.querySelector('[data-edit-id="dash-stat-ventes-value"]')
+      if (salesEl) salesEl.textContent = (profile.total_sales || 0).toLocaleString('fr-FR')
+      const revEl = document.querySelector('[data-edit-id="dash-stat-revenu-value"]')
+      if (revEl) revEl.textContent = (profile.total_revenue || 0).toLocaleString('fr-FR') + ' €'
     }
-  </script>
-  <style type="text/css">@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:300;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:400;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:500;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:600;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/vietnamese/wght/normal.woff2);unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/cyrillic-ext/wght/normal.woff2);unicode-range:U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/greek/wght/normal.woff2);unicode-range:U+0370-03FF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/greek-ext/wght/normal.woff2);unicode-range:U+1F00-1FFF;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/cyrillic/wght/normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/latin/wght/normal.woff2);unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;font-display:swap;}@font-face {font-family:Inter;font-style:normal;font-weight:700;src:url(/cf-fonts/v/inter/5.0.16/latin-ext/wght/normal.woff2);unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF;font-display:swap;}</style>
-</head>
-<body class="bg-bgDark text-gray-100 min-h-screen font-sans antialiased">
 
-  <!-- NAVBAR (comme avant) -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-2xl font-bold text-primary">Myaffilinks</span>
-        <span class="text-sm text-gray-400">.io</span>
-      </div>
-      <div class="hidden md:flex items-center gap-8">
-        <a href="nos-affilinks.html" class="hover:text-primary transition">Nos affilinks</a>
-        <a href="dashboard.html" class="text-primary font-medium">Tableau de bord</a>
-        <a href="passer-au-plan-superieur.html" class="hover:text-primary transition">Passer au plan supérieur</a>
-        <a href="mon-compte.html" class="hover:text-primary transition">Mon compte</a>
-      </div>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-400">Bonjour, palestineibzn</span>
-        <button 
-  onclick="localStorage.clear(); window.location.href='login.html';"
-  class="bg-primary/20 text-primary px-4 py-2 rounded-full text-sm hover:bg-primary/40 transition"
->
-          Déconnexion
-        </button>
-      </div>
-    </div>
-  </nav>
+    // Classement
+    const { data: allProfiles } = await supabase
+      .from('profiles')
+      .select('user_id, total_clicks')
+      .order('total_clicks', { ascending: false })
 
-  <main class="pt-24 pb-16 px-6 max-w-7xl mx-auto">
+    if (allProfiles) {
+      const rank = allProfiles.findIndex(p => p.user_id === user.id) + 1
+      document.getElementById('dash-stat-rank-value').textContent = rank > 0 ? rank + 'ème' : '—'
+    }
 
-    <!-- HEADER -->
-    <div class="text-center mb-12">
-      <h1 class="text-4xl md:text-6xl font-extrabold animate-glow mb-4">Tableau de bord</h1>
-      <p class="text-xl text-gray-400">Suis les performances de tes liens d’affiliation et gère tes campagnes</p>
-    </div>
+    await loadMyLinks(user)
+  }
 
-    <!-- STATS CARTES (comme avant) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
-        <div class="text-4xl mb-2">🖱️</div>
-        <h3 class="text-lg font-medium text-gray-300">Nombre total de clics</h3>
-        <p class="text-4xl font-bold text-primary mt-3">30 000</p>
-      </div>
-      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
-        <div class="text-4xl mb-2">🛒</div>
-        <h3 class="text-lg font-medium text-gray-300">Ventes totales</h3>
-        <p class="text-4xl font-bold text-primary mt-3">66</p>
-      </div>
-      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
-        <div class="text-4xl mb-2">$</div>
-        <h3 class="text-lg font-medium text-gray-300">Revenu total</h3>
-        <p class="text-4xl font-bold text-primary mt-3">116 €</p>
-        <button class="mt-4 bg-primary/20 text-primary px-5 py-2 rounded-full text-sm hover:bg-primary hover:text-black transition">
-          💰 Retrait
-        </button>
-      </div>
-      <div class="bg-card p-6 rounded-2xl border border-gray-800 text-center hover:border-primary/50 transition">
-        <div class="text-4xl mb-2">🏆</div>
-        <h3 class="text-lg font-medium text-gray-300">Classement</h3>
-        <p class="text-4xl font-bold text-primary mt-3">98<sup>ème</sup></p>
-      </div>
-    </div>
+  // ── Charger les liens trackés de l'user ──────────────────────────────────
+  window.loadMyLinks = async (user) => {
+    if (!user) {
+      const { data: { user: u } } = await supabase.auth.getUser()
+      user = u
+    }
+    if (!user) return
 
-    <!-- ANALYSES PERFORMANCES -->
-    <div class="bg-card rounded-2xl border border-gray-800 p-8 mb-12">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h2 class="text-3xl font-bold">Analyses des performances</h2>
-        <button class="bg-primary/20 text-primary px-6 py-3 rounded-full hover:bg-primary hover:text-black transition flex items-center gap-2">
-          <span>🔄</span> Rafraîchir
-        </button>
-      </div>
+    const container = document.getElementById('my-links-container')
+    container.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-600">
+      <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mr-3"></div>
+      <span class="text-xs uppercase tracking-wider">Chargement…</span>
+    </div>`
 
-      <!-- Filtres -->
-      <div class="flex flex-wrap gap-4 mb-10">
-        <button class="bg-primary text-black px-5 py-2.5 rounded-full font-medium">Par offre</button>
-        <button class="bg-card border border-gray-700 px-5 py-2.5 rounded-full hover:border-primary transition">Par société</button>
-        <input type="text" placeholder="Recherche de liens..." class="flex-1 min-w-[200px] bg-gray-900 border border-gray-700 rounded-full px-6 py-3 focus:outline-none focus:border-primary">
-        <select class="bg-gray-900 border border-gray-700 rounded-full px-6 py-3">
-          <option>Trier par...</option>
-          <option>Clics ↓</option>
-          <option>Ventes ↓</option>
-          <option>Revenus ↓</option>
-        </select>
-        <button class="bg-primary text-black px-8 py-3 rounded-full font-medium hover:bg-primaryDark transition">Rechercher</button>
-      </div>
+    // Récupérer les liens de l'user avec le count des clics via la vue
+    const { data: links, error } = await supabase
+      .from('user_link_stats')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('click_count', { ascending: false })
 
-      <!-- Exemple de lien -->
-      <div class="bg-gray-900/70 p-6 rounded-xl border border-gray-700 mb-10">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div>
-            <div class="flex items-center gap-3 mb-2">
-              <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-2xl">😊</div>
-              <h3 class="text-xl font-bold">Offre de parrainage - Commission de 26%</h3>
+    if (error || !links || !links.length) {
+      container.innerHTML = `<div class="text-center py-12 text-gray-600">
+        <p class="text-3xl mb-3">🔗</p>
+        <p class="text-xs">Aucun lien généré pour l'instant.</p>
+        <p class="text-[10px] text-gray-700 mt-1">Va dans "Nos Affilinks" et clique "Obtenir mon lien".</p>
+      </div>`
+      renderCharts([])
+      return
+    }
+
+    // Header tableau
+    container.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-white/5">
+              <th class="text-left py-3 px-3 text-[10px] text-gray-500 uppercase tracking-wider font-normal">Offre</th>
+              <th class="text-right py-3 px-3 text-[10px] text-gray-500 uppercase tracking-wider font-normal">Clics</th>
+              <th class="text-right py-3 px-3 text-[10px] text-gray-500 uppercase tracking-wider font-normal">Commission</th>
+              <th class="text-right py-3 px-3 text-[10px] text-gray-500 uppercase tracking-wider font-normal">Lien</th>
+            </tr>
+          </thead>
+          <tbody id="my-links-tbody">
+          </tbody>
+        </table>
+      </div>
+    `
+
+    const tbody = document.getElementById('my-links-tbody')
+    tbody.innerHTML = links.map(l => `
+      <tr class="border-b border-white/[0.04] hover:bg-white/[0.02] transition">
+        <td class="py-3.5 px-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-sm border border-primary/20 shrink-0">
+              ${l.offer_emoji || '📦'}
             </div>
-            <p class="text-gray-400">Ali Express</p>
-            <div class="flex items-center gap-2 mt-1">
-              <a href="#" class="text-primary hover:underline break-all">https://www.aliexpress.com/useraffilinksN34</a>
-              <button class="text-gray-400 hover:text-white">📋</button>
+            <div>
+              <p class="text-white font-normal">${l.offer_title || '—'}</p>
+              <p class="text-gray-600 text-[10px] mt-0.5">${l.offer_company || '—'}</p>
             </div>
           </div>
-          <button class="bg-primary/10 border border-primary/30 text-primary px-6 py-3 rounded-full hover:bg-primary hover:text-black transition">
-            Voir les détails
+        </td>
+        <td class="py-3.5 px-3 text-right">
+          <span class="text-white font-light text-sm num">${(l.click_count || 0).toLocaleString('fr-FR')}</span>
+        </td>
+        <td class="py-3.5 px-3 text-right">
+          <span class="text-primary font-light">${l.commission || 0}%</span>
+        </td>
+        <td class="py-3.5 px-3 text-right">
+          <button onclick="copyLink('${l.tracking_url}')"
+                  class="text-[10px] text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 transition">
+            📋 Copier
           </button>
-        </div>
+        </td>
+      </tr>
+    `).join('')
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div><p class="text-gray-400">Clics</p><p class="text-2xl font-bold">30 000</p></div>
-          <div><p class="text-gray-400">Ventes estimées</p><p class="text-2xl font-bold">66</p></div>
-          <div><p class="text-gray-400">Revenus</p><p class="text-2xl font-bold text-primary">116 €</p></div>
-          <div><p class="text-gray-400">Depuis le</p><p class="text-lg">16 janvier 2026</p></div>
-        </div>
-      </div>
+    renderCharts(links)
+  }
 
-      <!-- GRAPH 1 : Line chart - Clics & Ventes sur 30 jours -->
-      <div class="mb-12">
-        <h3 class="text-2xl font-bold mb-6 text-center md:text-left">Évolution des clics et ventes</h3>
-        <div class="bg-gray-950 p-6 rounded-xl border border-gray-800">
-          <canvas id="lineChart" height="140"></canvas>
-        </div>
-      </div>
+  // ── Copier un lien depuis le tableau ─────────────────────────────────────
+  window.copyLink = async (url) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      // Feedback visuel léger
+      const btns = document.querySelectorAll('#my-links-tbody button')
+      // (on ne cherche pas le btn précis ici, juste un toast serait mieux)
+    } catch {
+      alert('Lien : ' + url)
+    }
+  }
 
-      <!-- GRAPH 2 : Bar chart - Moyenne par heure -->
-      <div>
-        <h3 class="text-2xl font-bold mb-6 text-center md:text-left">Moyenne clics / ventes par heure de la journée</h3>
-        <div class="bg-gray-950 p-6 rounded-xl border border-gray-800">
-          <canvas id="barChart" height="140"></canvas>
-        </div>
-      </div>
-    </div>
+  // ── Rendre les charts depuis les données réelles ──────────────────────────
+  function renderCharts(links) {
+    // Chart 1 : Clics par offre (bar horizontal)
+    const labels = links.map(l => l.offer_title || '—').slice(0, 8)
+    const counts  = links.map(l => l.click_count || 0).slice(0, 8)
 
-  </main>
+    barConfigData = {
+      labels,
+      datasets: [{
+        data: counts,
+        backgroundColor: 'rgba(249,115,22,0.35)',
+        borderColor: '#f97316',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    }
 
-  <footer class="bg-black border-t border-gray-800 py-8 text-center text-gray-500">
-    <p>Myaffilinks.io • POURQUOI PAS TOI • © 2026</p>
-  </footer>
+    // Chart 2 : Clics des 30 derniers jours (on affiche les totaux statiques ici,
+    // pour un vrai historique il faudrait une colonne date dans link_clicks)
+    const dates = Array.from({length: 30}, (_, i) => {
+      const d = new Date()
+      d.setDate(d.getDate() - (29 - i))
+      return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })
+    })
 
-  <!-- SCRIPT CHARTS -->
-  <script>
-    // Données exemple (tu pourras les remplacer par fetch API plus tard)
-    const dates = ["Jan 01","Jan 02","Jan 03","Jan 04","Jan 05","Jan 06","Jan 07","Jan 08","Jan 09","Jan 10","Jan 11","Jan 12","Jan 13","Jan 14","Jan 15","Jan 16","Jan 17","Jan 18","Jan 19","Jan 20","Jan 21","Jan 22","Jan 23","Jan 24","Jan 25","Jan 26","Jan 27","Jan 28","Jan 29","Jan 30"];
-    
-    const clicksData = [868,1833,1932,794,509,939,1438,1397,1126,645,523,2006,931,766,1964,1435,463,775,475,1727,1403,775,2154,2098,599,1727,1038,895,907,915];
-    const salesData  = [10,5,3,8,11,12,4,1,2,7,9,5,8,8,10,10,1,9,5,2,3,5,1,11,12,2,7,3,1,8];
+    lineConfigData = {
+      labels: dates,
+      datasets: [{
+        label: 'Clics',
+        data: Array(30).fill(0), // Sera rempli avec de vraies données si tu ajoutes clicked_at groupBy
+        borderColor: '#f97316',
+        backgroundColor: 'rgba(249,115,22,0.07)',
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0,
+        borderWidth: 1.5
+      }]
+    }
 
-    // Line Chart
-    new Chart(document.getElementById('lineChart'), {
-      type: 'line',
-      data: {
-        labels: dates,
-        datasets: [
-          {
-            label: 'Clics (×1000)',
-            data: clicksData.map(v => v / 1000),
-            borderColor: '#fb923c',
-            backgroundColor: 'rgba(251, 146, 60, 0.2)',
-            tension: 0.4,
-            fill: true,
-            yAxisID: 'y'
-          },
-          {
-            label: 'Ventes',
-            data: salesData,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.2)',
-            tension: 0.4,
-            fill: true,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        scales: {
-          y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Clics (milliers)' } },
-          y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Ventes' }, grid: { drawOnChartArea: false } },
-          x: { grid: { color: 'rgba(255,255,255,0.05)' } }
-        },
-        plugins: { legend: { position: 'top' } }
-      }
-    });
+    // Détruire et recréer les charts
+    if (window._lineChartInst) window._lineChartInst.destroy()
+    if (window._barChartInst)  window._barChartInst.destroy()
 
-    // Bar Chart - Moyenne par heure (données fictives réalistes)
-    const hours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2,'0')}h`);
-    const avgClicksPerHour = [45,32,28,35,48,72,115,168,195,220,185,162,148,175,210,245,198,165,132,98,75,62,55,48];
-    const avgSalesPerHour = [2,1,0,1,3,5,8,12,15,18,14,11,9,12,15,19,16,13,10,7,5,3,2,1];
+    const lineEl = document.getElementById('lineChart')
+    const barEl  = document.getElementById('barChart')
 
-    new Chart(document.getElementById('barChart'), {
-      type: 'bar',
-      data: {
-        labels: hours,
-        datasets: [
-          {
-            label: 'Clics moyens',
-            data: avgClicksPerHour,
-            backgroundColor: 'rgba(251, 146, 60, 0.6)',
-            borderColor: '#fb923c',
-            borderWidth: 1
-          },
-          {
-            label: 'Ventes moyennes',
-            data: avgSalesPerHour,
-            backgroundColor: 'rgba(239, 68, 68, 0.6)',
-            borderColor: '#ef4444',
-            borderWidth: 1
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-          x: { grid: { display: false } }
-        },
-        plugins: { legend: { position: 'top' } }
-      }
-    });
-  </script>
+    if (lineEl) window._lineChartInst = new Chart(lineEl, { type:'line', data: JSON.parse(JSON.stringify(lineConfigData)), options: JSON.parse(JSON.stringify(lineOptions)) })
+    if (barEl && labels.length)  window._barChartInst  = new Chart(barEl,  { type:'bar',  data: JSON.parse(JSON.stringify(barConfigData)),  options: JSON.parse(JSON.stringify(barOptions))  })
+  }
 
-</body>
-</html>
+  // ── Expand chart modal ────────────────────────────────────────────────────
+  window.expandChart = (type) => {
+    const modal   = document.getElementById('chart-modal')
+    const titleEl = document.getElementById('modal-chart-title')
+    modal.classList.remove('hidden')
+    if (modalChart) { modalChart.destroy(); modalChart = null }
+
+    if (type === 'line') {
+      titleEl.textContent = 'Évolution des clics (30 derniers jours)'
+      if (lineConfigData) modalChart = new Chart(document.getElementById('modalChart'), { type:'line', data: JSON.parse(JSON.stringify(lineConfigData)), options: JSON.parse(JSON.stringify(lineOptions)) })
+    } else {
+      titleEl.textContent = 'Clics par offre'
+      if (barConfigData) modalChart = new Chart(document.getElementById('modalChart'), { type:'bar', data: JSON.parse(JSON.stringify(barConfigData)), options: JSON.parse(JSON.stringify(barOptions)) })
+    }
+  }
+
+  window.closeModal = () => {
+    document.getElementById('chart-modal').classList.add('hidden')
+    if (modalChart) { modalChart.destroy(); modalChart = null }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal() })
+
+  init()
+</script>
