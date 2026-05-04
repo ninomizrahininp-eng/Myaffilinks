@@ -15,7 +15,7 @@
         extend: {
           colors: {
             primary: '#f97316',
-            primaryDark: '#c2410c',
+            primaryDark: '#fb923c',
           },
           fontFamily: {
             nunito: ['Nunito', 'sans-serif'],
@@ -94,47 +94,47 @@
 
   <!-- Script Supabase corrigé pour Vercel -->
   <script type="module">
-    import { supabase } from '/supabase/client.js'   // ← Correction importante : / au début
+  import { supabase } from '/supabase/client.js'
 
-    const form = document.getElementById('login-form')
-    const errorMsg = document.getElementById('error-message')
+  const form = document.getElementById('login-form')
+  const errorMsg = document.getElementById('error-message')
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault()
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault()
 
-      const email = document.getElementById('email').value.trim()
-      const password = document.getElementById('password').value
+    const email = document.getElementById('email').value.trim()
+    const password = document.getElementById('password').value
 
-      errorMsg.classList.add('hidden')
+    errorMsg.classList.add('hidden')
 
-      try {
-        const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      // On récupère le user directement ici ↓
+      const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-        if (authError) {
-          errorMsg.textContent = authError.message || "Email ou mot de passe incorrect"
-          errorMsg.classList.remove('hidden')
-          return
-        }
-
-        // Vérifier le rôle
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('email', email)
-          .single()
-
-        if (profile && profile.role === 'admin') {
-          window.location.href = 'admin.html'
-        } else {
-          window.location.href = 'nos-affilinks.html'
-        }
-
-      } catch (err) {
-        errorMsg.textContent = "Erreur de connexion. Vérifiez vos identifiants."
+      if (authError) {
+        errorMsg.textContent = "Email ou mot de passe incorrect"
         errorMsg.classList.remove('hidden')
+        return
       }
-    })
-  </script>
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single()
+
+      if (profile && profile.role === 'admin') {
+        window.location.href = 'admin.html'
+      } else {
+        window.location.href = 'navbarvisit.html'
+      }
+
+    } catch (err) {
+      errorMsg.textContent = "Erreur de connexion. Vérifiez vos identifiants."
+      errorMsg.classList.remove('hidden')
+    }
+  })
+</script>
 
 </body>
 </html>
