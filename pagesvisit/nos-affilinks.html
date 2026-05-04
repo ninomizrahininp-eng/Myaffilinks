@@ -1,0 +1,317 @@
+<!-- GUARD -->
+<script>
+  if (window.self === window.top && !window.__username) {
+    window.location.replace('/navbarvisit.html');
+  }
+</script>
+
+<main class="pt-20 pb-14 px-5 max-w-6xl mx-auto" data-edit-id="affilinks-main">
+
+  <!-- HERO -->
+  <div class="text-center mb-10 fade-up" data-edit-id="affilinks-hero">
+    <div class="flex items-center justify-center mb-4">
+      <span class="section-tag">🔥 Nouvelles offres disponibles</span>
+    </div>
+    <h1 id="hero-username"
+        data-edit-id="affilinks-hero-title"
+        class="text-3xl md:text-5xl font-light leading-tight tracking-tight text-white mb-4">
+      Bonjour ...,<br/>
+      prêt à te rapprocher<br/>
+      de tes objectifs ?
+    </h1>
+    <p class="text-gray-400 text-sm md:text-base max-w-xl mx-auto" data-edit-id="affilinks-hero-subtitle">
+      Découvre des milliers d'offres d'affiliation et commence à générer des revenus dès aujourd'hui.
+    </p>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="rs-card rounded-2xl p-5 mb-8 fade-up-2" data-edit-id="affilinks-filters">
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <button class="btn-primary px-5 py-2 text-xs" data-edit-id="affilinks-btn-offre">Par offre</button>
+      <button class="btn-ghost px-5 py-2 text-xs" data-edit-id="affilinks-btn-societe">Par société</button>
+    </div>
+    <div class="flex flex-col md:flex-row gap-2">
+      <input type="text" placeholder="Rechercher une offre…"
+             class="flex-1 rounded-full px-5 py-2.5 text-xs"
+             data-edit-id="affilinks-search-input"/>
+      <select class="rounded-full px-5 py-2.5 text-xs min-w-[180px]" data-edit-id="affilinks-sort-select">
+        <option>Trier par…</option>
+        <option>Commission ↓</option>
+        <option>Popularité ↓</option>
+        <option>Nouveautés</option>
+        <option>Meilleures réductions</option>
+      </select>
+      <button class="btn-primary px-6 py-2.5 text-xs" data-edit-id="affilinks-search-btn">Rechercher</button>
+    </div>
+  </div>
+
+  <!-- GRILLE -->
+  <div id="affilinks-offers-grid"
+       data-edit-id="affilinks-grid"
+       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="col-span-full text-center py-16 text-gray-600">
+      <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-xs tracking-wider uppercase">Chargement des offres…</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL — Lien généré -->
+<div id="link-modal" class="fixed inset-0 z-[9999] flex items-center justify-center hidden" onclick="if(event.target===this)closeLinkModal()">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div class="relative bg-[#111] border border-white/10 rounded-2xl p-6 w-[90vw] max-w-md shadow-2xl">
+
+    <button onclick="closeLinkModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-lg leading-none transition">✕</button>
+
+    <!-- Offre info -->
+    <div class="flex items-center gap-3 mb-5">
+      <div id="modal-offer-emoji" class="w-11 h-11 bg-primary/15 rounded-xl flex items-center justify-center text-2xl border border-primary/20 shrink-0">📦</div>
+      <div>
+        <p id="modal-offer-title" class="text-sm font-normal text-white">—</p>
+        <p id="modal-offer-company" class="text-gray-500 text-xs mt-0.5">—</p>
+      </div>
+    </div>
+
+    <div class="h-px bg-white/5 mb-5"></div>
+
+    <!-- Lien unique -->
+    <div class="mb-5">
+      <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-2">Ton lien de tracking unique</p>
+      <div class="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2.5">
+        <p id="modal-tracking-url" class="text-primary text-xs flex-1 break-all font-mono leading-relaxed">—</p>
+        <button onclick="copyTrackingUrl()" id="copy-btn"
+                class="shrink-0 text-[10px] text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2.5 py-1.5 transition whitespace-nowrap">
+          📋 Copier
+        </button>
+      </div>
+      <p class="text-gray-600 text-[10px] mt-2">
+        ℹ️ Ce lien t'est propre. Chaque clic est enregistré dans ton tableau de bord.
+      </p>
+    </div>
+
+    <!-- Stats rapides -->
+    <div class="grid grid-cols-2 gap-3 mb-5">
+      <div class="bg-white/[0.03] border border-white/5 rounded-xl p-3 text-center">
+        <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Clics</p>
+        <p id="modal-clicks" class="text-xl font-light text-white num">—</p>
+      </div>
+      <div class="bg-white/[0.03] border border-white/5 rounded-xl p-3 text-center">
+        <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Commission</p>
+        <p id="modal-commission" class="text-xl font-light text-primary num">—%</p>
+      </div>
+    </div>
+
+    <!-- Bouton aller sur l'offre (avec tracking clic) -->
+    <button onclick="goToOffer()" class="w-full btn-primary py-3 text-xs">
+      🚀 Accéder à l'offre (et tracker ce clic)
+    </button>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="py-7 text-center">
+  <div class="flex items-center justify-center gap-2 mb-2">
+    <div class="flex flex-col items-end">
+      <img src="/images/logoblanc.svg" alt="MyAffilinks.io" class="h-4 w-auto object-contain" />
+      <span class="mt-0.5 pr-0.5 text-[6px] font-medium tracking-[0.15em] text-gray-400 whitespace-nowrap">POURQUOI PAS TOI</span>
+    </div>
+  </div>
+  <p class="text-gray-600 text-xs font-display">© 2026</p>
+</footer>
+
+<script type="module">
+  import { supabase } from '/supabase/client.js'
+
+  // ── State ────────────────────────────────────────────────────────────────
+  let currentUser    = null
+  let currentOffer   = null   // offre sélectionnée dans la modal
+  let currentTrackingUrl = null
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+  async function init() {
+    const { data: { user } } = await supabase.auth.getUser()
+    currentUser = user
+
+    let userPlan = 'free'
+    if (user) {
+      const { data: p } = await supabase.from('profiles')
+        .select('plan, username').eq('user_id', user.id).single()
+      userPlan = p?.plan || 'free'
+      if (p?.username) {
+        const el = document.getElementById('hero-username')
+        if (el) el.innerHTML = `Bonjour ${p.username},<br/>prêt à te rapprocher<br/>de tes objectifs ?`
+      }
+    }
+
+    await loadOffers(userPlan)
+  }
+
+  // ── Charger les offres ────────────────────────────────────────────────────
+  async function loadOffers(userPlan) {
+    try {
+      const { data: offers, error } = await supabase
+        .from('offers').select('*').eq('status', 'active').order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      const grid = document.getElementById('affilinks-offers-grid')
+      if (!offers || !offers.length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-600">
+          <p class="text-4xl mb-3">📦</p>
+          <p class="text-sm">Aucune offre disponible pour l'instant.</p>
+        </div>`
+        return
+      }
+
+      const visible = offers.filter(o =>
+        !o.eligible_plans || !o.eligible_plans.length ||
+        o.eligible_plans.includes(userPlan) || o.eligible_plans.includes('free')
+      )
+
+      grid.innerHTML = visible.map((o, i) => `
+        <div class="offer-card" data-edit-id="offer-card-${i}">
+          <div class="p-5">
+            <div class="flex items-start gap-3 mb-4">
+              <div class="w-11 h-11 bg-primary/15 rounded-xl flex items-center justify-center text-2xl border border-primary/20 shrink-0">
+                ${o.emoji || '📦'}
+              </div>
+              <div>
+                <h3 class="text-sm font-normal text-white">${o.title || '—'}</h3>
+                <p class="text-gray-500 text-xs mt-0.5">${o.company || '—'}</p>
+              </div>
+            </div>
+            <div class="glow-line mb-3"></div>
+            <p class="text-gray-400 text-xs mb-4 leading-relaxed">${o.description || ''}</p>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-xl font-light text-primary num">${o.commission || 0}%</span>
+              <span class="text-gray-500 text-xs">de commission</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="flex-1 btn-ghost py-2 text-xs">
+                Détails
+              </button>
+              <button onclick="openLinkModal(${JSON.stringify(o).replace(/"/g,'&quot;')})"
+                      class="flex-1 btn-primary py-2 text-xs">
+                Obtenir mon lien
+              </button>
+            </div>
+          </div>
+        </div>`).join('')
+
+    } catch (err) {
+      console.error('loadOffers:', err)
+      const grid = document.getElementById('affilinks-offers-grid')
+      if (grid) grid.innerHTML = '<div class="col-span-full text-center py-8 text-red-400 text-sm">Erreur lors du chargement des offres.</div>'
+    }
+  }
+
+  // ── Ouvrir la modal avec le lien unique ───────────────────────────────────
+  window.openLinkModal = async (offer) => {
+    if (!currentUser) { alert('Tu dois être connecté.'); return }
+
+    currentOffer = offer
+
+    // Remplir les infos de base
+    document.getElementById('modal-offer-emoji').textContent   = offer.emoji || '📦'
+    document.getElementById('modal-offer-title').textContent   = offer.title || '—'
+    document.getElementById('modal-offer-company').textContent = offer.company || '—'
+    document.getElementById('modal-commission').textContent    = (offer.commission || 0) + '%'
+    document.getElementById('modal-tracking-url').textContent  = '⏳ Génération…'
+    document.getElementById('modal-clicks').textContent        = '…'
+
+    document.getElementById('link-modal').classList.remove('hidden')
+
+    // Générer ou récupérer le lien unique
+    const trackingUrl = await getOrCreateLink(offer)
+    currentTrackingUrl = trackingUrl
+    document.getElementById('modal-tracking-url').textContent = trackingUrl
+
+    // Charger le nombre de clics pour cette offre
+    const { count } = await supabase
+      .from('link_clicks')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', currentUser.id)
+      .eq('offer_id', offer.id)
+
+    document.getElementById('modal-clicks').textContent = (count || 0).toLocaleString('fr-FR')
+  }
+
+  // ── Générer ou récupérer le lien unique user+offre ─────────────────────────
+  async function getOrCreateLink(offer) {
+    // Construire l'URL trackée : url_offre?ref=user_id
+    const baseUrl = offer.url || ''
+    if (!baseUrl) return '⚠️ URL de l\'offre manquante'
+
+    // Ajouter le paramètre ?ref=user_id (ou &ref= si déjà des params)
+    const separator = baseUrl.includes('?') ? '&' : '?'
+    const trackingUrl = `${baseUrl}${separator}ref=${currentUser.id}`
+
+    // Vérifier si ce lien existe déjà en base
+    const { data: existing } = await supabase
+      .from('user_links')
+      .select('tracking_url')
+      .eq('user_id', currentUser.id)
+      .eq('offer_id', offer.id)
+      .maybeSingle()
+
+    if (existing) return existing.tracking_url
+
+    // Sinon, créer l'entrée
+    const { error } = await supabase.from('user_links').insert({
+      user_id:      currentUser.id,
+      offer_id:     offer.id,
+      tracking_url: trackingUrl,
+    })
+
+    if (error) {
+      console.error('Erreur création user_link:', error)
+      // Même en cas d'erreur d'insert (ex: doublon race condition), retourner l'URL
+    }
+
+    return trackingUrl
+  }
+
+  // ── Copier le lien ────────────────────────────────────────────────────────
+  window.copyTrackingUrl = async () => {
+    if (!currentTrackingUrl) return
+    try {
+      await navigator.clipboard.writeText(currentTrackingUrl)
+      const btn = document.getElementById('copy-btn')
+      btn.textContent = '✅ Copié !'
+      setTimeout(() => { btn.textContent = '📋 Copier' }, 2000)
+    } catch {
+      alert('Lien : ' + currentTrackingUrl)
+    }
+  }
+
+  // ── Aller sur l'offre + tracker le clic ──────────────────────────────────
+  window.goToOffer = async () => {
+    if (!currentOffer || !currentUser) return
+
+    // Enregistrer le clic en base
+    await supabase.from('link_clicks').insert({
+      user_id:  currentUser.id,
+      offer_id: currentOffer.id,
+    })
+
+    // Mettre à jour le compteur dans la modal
+    const current = parseInt(document.getElementById('modal-clicks').textContent.replace(/\s/g, '')) || 0
+    document.getElementById('modal-clicks').textContent = (current + 1).toLocaleString('fr-FR')
+
+    // Ouvrir le lien
+    window.open(currentTrackingUrl || currentOffer.url, '_blank')
+  }
+
+  // ── Fermer la modal ───────────────────────────────────────────────────────
+  window.closeLinkModal = () => {
+    document.getElementById('link-modal').classList.add('hidden')
+    currentOffer = null
+    currentTrackingUrl = null
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLinkModal() })
+
+  init()
+</script>

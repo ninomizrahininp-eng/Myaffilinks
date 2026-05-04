@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Myaffilinks.io</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#f97316',
+            primaryDark: '#c2410c',
+            bgDark: '#0a0a0a',
+            card: '#111111',
+            accent: '#fb923c'
+          },
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+          animation: {
+            glow: 'glow 3s ease-in-out infinite alternate',
+            orb: 'orbFloat 8s ease-in-out infinite',
+            orbSlow: 'orbFloat 12s ease-in-out infinite reverse',
+          },
+          keyframes: {
+            glow: {
+              '0%':   { textShadow: '0 0 20px #f9731633, 0 0 40px #f9731655' },
+              '100%': { textShadow: '0 0 40px #f97316aa, 0 0 80px #f9731666, 0 0 120px #f9731633' }
+            },
+            orbFloat: {
+              '0%, 100%': { transform: 'translateY(0px) scale(1)' },
+              '50%': { transform: 'translateY(-20px) scale(1.03)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'DM Sans', sans-serif; }
+    h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Syne', sans-serif; }
+
+    body { background-color: #0a0a0a; color: #f1f1f1; }
+
+    /* ── Monospace pour tous les chiffres/stats ── */
+    .num,
+    [data-num],
+    .stat-value,
+    .font-mono-num,
+    .stat-card p.text-3xl,
+    .stat-card p.text-4xl,
+    [data-edit-id$="-value"],
+    [data-edit-id$="-price"],
+    [data-edit-id$="-clics-value"],
+    [data-edit-id$="-ventes-value"],
+    [data-edit-id$="-revenu-value"],
+    [data-edit-id$="-rank-value"] {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      letter-spacing: -0.02em;
+    }
+
+    /* Orb background */
+    .orb-wrap {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(80px); opacity: 0.22;
+    }
+    .orb-main {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, #f97316 0%, #c2410c 40%, transparent 70%);
+      top: -150px; left: 50%; transform: translateX(-50%);
+      animation: orbFloat 8s ease-in-out infinite;
+    }
+    .orb-right {
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, #fb923c 0%, #ea580c 50%, transparent 70%);
+      bottom: 20%; right: -60px;
+      animation: orbFloat 12s ease-in-out infinite reverse;
+      opacity: 0.12;
+    }
+    .orb-left {
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, #f97316 0%, #9a3412 60%, transparent 70%);
+      top: 40%; left: -40px;
+      animation: orbFloat 10s ease-in-out infinite;
+      opacity: 0.10;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(10, 10, 10, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(249, 115, 22, 0.12);
+    }
+
+    /* Cards */
+    .rs-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .rs-card:hover {
+      border-color: rgba(249, 115, 22, 0.35);
+      background: linear-gradient(145deg, rgba(249,115,22,0.05), rgba(255,255,255,0.02));
+      box-shadow: 0 0 24px rgba(249, 115, 22, 0.07);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #000;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      border-radius: 100px;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 16px rgba(249, 115, 22, 0.28);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 5px 24px rgba(249, 115, 22, 0.45);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: rgba(249, 115, 22, 0.08);
+      border: 1px solid rgba(249, 115, 22, 0.28);
+      color: #f97316;
+      font-family: 'Syne', sans-serif;
+      border-radius: 100px;
+      transition: all 0.3s ease;
+    }
+    .btn-ghost:hover {
+      background: rgba(249, 115, 22, 0.18);
+      border-color: #f97316;
+      box-shadow: 0 0 16px rgba(249, 115, 22, 0.18);
+    }
+
+    /* Nav link */
+    .nav-link { position: relative; transition: color 0.2s; }
+    .nav-link::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0; right: 0;
+      height: 2px; background: #f97316;
+      transform: scaleX(0); transition: transform 0.3s ease;
+      border-radius: 2px;
+    }
+    .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
+    .nav-link.active { color: #f97316; }
+
+    /* Inputs */
+    input, select, textarea {
+      background: rgba(255,255,255,0.04) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      color: #f1f1f1 !important;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.3s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(249, 115, 22, 0.5) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
+    }
+    input::placeholder { color: rgba(255,255,255,0.3) !important; }
+
+    /* Stat cards */
+    .stat-card {
+      background: linear-gradient(145deg, rgba(249,115,22,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(249, 115, 22, 0.13);
+      border-radius: 14px;
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+      border-color: rgba(249, 115, 22, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(249, 115, 22, 0.08);
+    }
+
+    /* Content z-index */
+    #app-content, nav { position: relative; z-index: 10; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.35); border-radius: 3px; }
+
+    /* Section tag */
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(249, 115, 22, 0.10);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+      color: #f97316; font-family: 'Syne', sans-serif;
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 100px;
+    }
+
+    /* Gradient text */
+    .text-gradient {
+      background: linear-gradient(135deg, #f97316, #fb923c, #fbbf24);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Offer card */
+    .offer-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; overflow: hidden;
+      transition: all 0.35s ease;
+    }
+    .offer-card:hover {
+      border-color: rgba(249, 115, 22, 0.32);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(249, 115, 22, 0.07);
+    }
+
+    /* Plan card */
+    .plan-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      transition: all 0.3s ease;
+    }
+    .plan-card:hover {
+      border-color: rgba(249, 115, 22, 0.35);
+      box-shadow: 0 12px 36px rgba(249, 115, 22, 0.08);
+    }
+    .plan-card.featured {
+      background: linear-gradient(160deg, rgba(249,115,22,0.07), rgba(255,255,255,0.02));
+      border-color: rgba(249, 115, 22, 0.35);
+      box-shadow: 0 0 36px rgba(249, 115, 22, 0.10);
+    }
+
+    /* Account sidebar */
+    .sidebar-link {
+      display: block; padding: 7px 12px; border-radius: 9px;
+      font-family: 'Syne', sans-serif; font-weight: 500;
+      font-size: 0.8rem;
+      transition: all 0.2s ease; color: rgba(255,255,255,0.55);
+    }
+    .sidebar-link:hover { background: rgba(249,115,22,0.08); color: #f97316; }
+    .sidebar-link.active { background: rgba(249,115,22,0.13); color: #f97316; border: 1px solid rgba(249,115,22,0.22); }
+
+    /* Chart */
+    canvas { position: relative; z-index: 1; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.05);
+      background: linear-gradient(0deg, rgba(249,115,22,0.02), transparent);
+    }
+
+    /* Animate in */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up   { animation: fadeUp 0.5s ease forwards; }
+    .fade-up-2 { animation: fadeUp 0.5s 0.10s ease forwards; opacity: 0; }
+    .fade-up-3 { animation: fadeUp 0.5s 0.20s ease forwards; opacity: 0; }
+    .fade-up-4 { animation: fadeUp 0.5s 0.30s ease forwards; opacity: 0; }
+
+    /* Separator glow */
+    .glow-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(249,115,22,0.35), transparent);
+    }
+
+    /* Badge popular */
+    .badge-popular {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #000; font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 0.6rem; letter-spacing: 0.05em;
+      padding: 3px 10px; border-radius: 100px;
+      box-shadow: 0 3px 12px rgba(249,115,22,0.38);
+    }
+
+    /* Mobile menu */
+    #mobile-menu {
+      background: rgba(10,10,10,0.97);
+      border-bottom: 1px solid rgba(249,115,22,0.12);
+      backdrop-filter: blur(20px);
+    }
+  </style>
+</head>
+<body class="bg-bgDark text-gray-100 min-h-screen antialiased dark">
+
+  <!-- ORB BACKGROUND -->
+  <div class="orb-wrap">
+    <div class="orb orb-main"></div>
+    <div class="orb orb-right"></div>
+    <div class="orb orb-left"></div>
+  </div>
+
+  <!-- ═══ NAVBAR ═══ -->
+  <nav class="navbar fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+
+      <!-- Logo -->
+      <div class="flex flex-col items-end">
+        <a href="/index.html">
+          <img
+            src="/images/logoblanc.svg"
+            alt="MyAffilinks.io"
+            class="h-5 w-auto object-contain"
+          />
+        </a>
+        <span class="mt-0.5 pr-1 text-[7.5px] font-medium tracking-[0.15em] text-gray-400 whitespace-nowrap">
+          POURQUOI PAS TOI
+        </span>
+      </div>
+
+      <!-- Desktop nav links -->
+      <div id="nav-links-wrap" class="hidden md:flex items-center gap-6">
+        <a href="/pagesvisit/nos-affilinks.html"
+           data-page="/pagesvisit/nos-affilinks.html"
+           data-edit-id="nav-link-affilinks"
+           class="nav-link text-gray-400 hover:text-white text-xs font-display font-medium">Nos affilinks</a>
+        <a href="/pagesvisit/dashboard.html"
+           data-page="/pagesvisit/dashboard.html"
+           data-edit-id="nav-link-dashboard"
+           class="nav-link text-gray-400 hover:text-white text-xs font-display font-medium">Tableau de bord</a>
+        <a href="/pagesvisit/passer-au-plan-superieur.html"
+           data-page="/pagesvisit/passer-au-plan-superieur.html"
+           data-edit-id="nav-link-plan"
+           class="nav-link text-gray-400 hover:text-white text-xs font-display font-medium">Plan supérieur</a>
+        <a href="/pagesvisit/mon-compte.html"
+           data-page="/pagesvisit/mon-compte.html"
+           data-edit-id="nav-link-compte"
+           class="nav-link text-gray-400 hover:text-white text-xs font-display font-medium">Mon compte</a>
+      </div>
+
+      <!-- Right actions -->
+      <div class="flex items-center gap-2.5">
+        <span id="nav-username" class="hidden md:inline text-xs text-gray-500 font-display">Bonjour, ...</span>
+        <button id="logout-btn" class="btn-ghost px-3 py-1.5 text-xs hidden md:inline-block">
+          Déconnexion
+        </button>
+        <!-- Mobile hamburger -->
+        <button id="mobile-toggle" class="md:hidden text-gray-400 hover:text-white p-1.5" aria-label="Menu">
+          <svg id="hamburger-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+          <svg id="close-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 pt-2">
+      <div class="flex flex-col gap-1">
+        <a href="/pagesvisit/nos-affilinks.html" data-page="/pagesvisit/nos-affilinks.html"
+           class="nav-link-mobile text-gray-300 hover:text-primary text-sm font-display font-medium py-2.5 px-3 rounded-xl hover:bg-white/5 transition">Nos affilinks</a>
+        <a href="/pagesvisit/dashboard.html" data-page="/pagesvisit/dashboard.html"
+           class="nav-link-mobile text-gray-300 hover:text-primary text-sm font-display font-medium py-2.5 px-3 rounded-xl hover:bg-white/5 transition">Tableau de bord</a>
+        <a href="/pagesvisit/passer-au-plan-superieur.html" data-page="/pagesvisit/passer-au-plan-superieur.html"
+           class="nav-link-mobile text-gray-300 hover:text-primary text-sm font-display font-medium py-2.5 px-3 rounded-xl hover:bg-white/5 transition">Plan supérieur</a>
+        <a href="/pagesvisit/mon-compte.html" data-page="/pagesvisit/mon-compte.html"
+           class="nav-link-mobile text-gray-300 hover:text-primary text-sm font-display font-medium py-2.5 px-3 rounded-xl hover:bg-white/5 transition">Mon compte</a>
+        <div class="glow-line my-2"></div>
+        <div class="flex items-center justify-between px-3 py-1">
+          <span id="nav-username-mobile" class="text-xs text-gray-500 font-display"></span>
+          <button id="logout-btn-mobile" class="btn-ghost px-3 py-1.5 text-xs">Déconnexion</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ CONTENU SPA ═══ -->
+  <div id="app-content" class="min-h-screen"></div>
+
+  <script type="module">
+    import { supabase } from '/supabase/client.js'
+    window._supabaseClient = supabase
+
+    async function loadUsername() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { window.location.href = '/login.html'; return }
+        const { data: p } = await supabase.from('profiles')
+          .select('username').eq('user_id', user.id).single()
+        const username = p?.username || user.email.split('@')[0] || 'Utilisateur'
+        const label = 'Bonjour, ' + username
+        document.getElementById('nav-username').textContent = label
+        const mob = document.getElementById('nav-username-mobile')
+        if (mob) mob.textContent = label
+        window.__username = username
+      } catch {}
+    }
+
+    function doLogout() {
+      if (!confirm('Voulez-vous vraiment vous déconnecter ?')) return
+      supabase.auth.signOut().then(() => {
+        const intro = localStorage.getItem('myaffilinks_intro_seen')
+        localStorage.clear()
+        if (intro) localStorage.setItem('myaffilinks_intro_seen', intro)
+        window.location.href = '/login.html'
+      })
+    }
+    document.getElementById('logout-btn').addEventListener('click', doLogout)
+    document.getElementById('logout-btn-mobile').addEventListener('click', doLogout)
+
+    // Mobile menu toggle
+    const mobileToggle = document.getElementById('mobile-toggle')
+    const mobileMenu = document.getElementById('mobile-menu')
+    const hamburgerIcon = document.getElementById('hamburger-icon')
+    const closeIcon = document.getElementById('close-icon')
+    mobileToggle.addEventListener('click', () => {
+      const open = !mobileMenu.classList.contains('hidden')
+      mobileMenu.classList.toggle('hidden', open)
+      hamburgerIcon.classList.toggle('hidden', !open)
+      closeIcon.classList.toggle('hidden', open)
+    })
+
+    function notifyHeightChange() {
+      let h = 600
+      const appContent = document.getElementById('app-content')
+      if (appContent) {
+        const footer = appContent.querySelector('footer')
+        if (footer) {
+          const rect = footer.getBoundingClientRect()
+          h = Math.max(rect.bottom + window.scrollY, 600)
+        } else {
+          h = Math.max(appContent.scrollHeight, 600)
+        }
+      } else {
+        h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, 600)
+      }
+      try { window.parent.postMessage({ type: 'iframeHeight', height: h }, '*') } catch {}
+    }
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => notifyHeightChange())
+      ro.observe(document.body)
+    }
+
+    async function loadPage(path) {
+      // Close mobile menu on navigate
+      mobileMenu.classList.add('hidden')
+      hamburgerIcon.classList.remove('hidden')
+      closeIcon.classList.add('hidden')
+
+      try {
+        const res = await fetch(path)
+        if (!res.ok) throw new Error('404 – ' + path)
+        const html = await res.text()
+        document.getElementById('app-content').innerHTML = html
+
+        document.getElementById('app-content').querySelectorAll('script').forEach(old => {
+          const s = document.createElement('script')
+          if (old.type) s.type = old.type
+          if (old.src)  s.src  = old.src
+          else s.textContent = old.textContent
+          old.replaceWith(s)
+        })
+
+        const hero = document.getElementById('hero-username')
+        if (hero && window.__username)
+          hero.innerHTML = 'Bonjour ' + window.__username + ',<br/><span class="text-gradient">prêt à te rapprocher</span><br/>de tes objectifs ?'
+
+        history.pushState({ path }, '', path)
+
+        document.querySelectorAll('.nav-link').forEach(a => {
+          const active = a.dataset.page === path
+          a.classList.toggle('active', active)
+        })
+
+        window.scrollTo(0, 0)
+
+        setTimeout(() => {
+          notifyHeightChange()
+          try { window.parent.postMessage({ type: 'spaNavigated', path }, '*') } catch {}
+        }, 300)
+        setTimeout(() => {
+          notifyHeightChange()
+          try { window.parent.postMessage({ type: 'spaNavigated', path }, '*') } catch {}
+        }, 900)
+
+        if (window._applySettingsReload) window._applySettingsReload()
+      } catch (err) { console.error('loadPage:', err) }
+    }
+
+    window.spaLoadPage = loadPage
+
+    window.addEventListener('popstate', e => {
+      loadPage(e.state?.path || '/pagesvisit/nos-affilinks.html')
+    })
+
+    // Mobile nav links
+    document.querySelectorAll('.nav-link-mobile').forEach(a => {
+      a.addEventListener('click', e => { e.preventDefault(); loadPage(a.dataset.page) })
+    })
+
+    ;(async () => {
+      await loadUsername()
+      await loadPage('/pagesvisit/nos-affilinks.html')
+      document.querySelectorAll('.nav-link').forEach(a => {
+        a.addEventListener('click', e => { e.preventDefault(); loadPage(a.dataset.page) })
+      })
+    })()
+  </script>
+
+  <script src="/js/apply-settings.js" defer></script>
+
+</body>
+</html>

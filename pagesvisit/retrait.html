@@ -1,0 +1,518 @@
+<!-- GUARD -->
+<script>
+  if (window.self === window.top && !window.__username) {
+    window.location.replace('/navbarvisit.html');
+  }
+</script>
+
+<main class="pt-20 pb-14 px-5 max-w-4xl mx-auto">
+
+  <!-- HERO -->
+  <div class="mb-8 fade-up">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="section-tag">💰 Retrait</span>
+    </div>
+    <h1 class="text-3xl md:text-4xl font-light tracking-tight text-white mb-1">
+      Retirer mes gains
+    </h1>
+    <p class="text-gray-500 text-xs max-w-lg">
+      Choisissez votre méthode de retrait et recevez vos commissions sous 3–5 jours ouvrés.
+    </p>
+  </div>
+
+  <!-- SOLDE DISPONIBLE -->
+  <div class="rs-card rounded-2xl p-6 mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Solde disponible</p>
+        <p class="text-4xl font-light text-primary" id="solde-display">—</p>
+        <p class="text-gray-600 text-xs mt-1">Minimum de retrait : <span class="text-gray-400">15,00 €</span></p>
+      </div>
+      <div class="text-right">
+        <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Total retiré</p>
+        <p class="text-xl font-light text-white" id="total-retire-display">—</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST GLOBAL -->
+  <div id="retrait-toast" class="hidden mb-5 px-4 py-3 rounded-xl text-xs font-normal"></div>
+
+  <!-- FORMULAIRE -->
+  <div class="rs-card rounded-2xl p-6 mb-6">
+    <div class="flex items-center gap-2 mb-6">
+      <span class="section-tag">🏦 Nouvelle demande</span>
+    </div>
+
+    <!-- Montant -->
+    <div class="mb-6">
+      <label class="block text-gray-500 text-xs mb-2 uppercase tracking-wider">Montant à retirer</label>
+      <div class="relative">
+        <input id="montant-input" type="number" min="15" step="0.01" placeholder="0.00"
+               class="w-full rounded-xl px-4 py-3 text-sm pr-10"/>
+        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">€</span>
+      </div>
+      <div class="flex gap-2 mt-2">
+        <button onclick="setMontant('all')" class="btn-ghost px-3 py-1 text-[10px] rounded-full">Tout retirer</button>
+        <button onclick="setMontant(50)"   class="btn-ghost px-3 py-1 text-[10px] rounded-full">50 €</button>
+        <button onclick="setMontant(100)"  class="btn-ghost px-3 py-1 text-[10px] rounded-full">100 €</button>
+        <button onclick="setMontant(200)"  class="btn-ghost px-3 py-1 text-[10px] rounded-full">200 €</button>
+      </div>
+    </div>
+
+    <!-- Méthode -->
+    <div class="mb-6">
+      <label class="block text-gray-500 text-xs mb-3 uppercase tracking-wider">Méthode de paiement</label>
+      <div class="grid sm:grid-cols-2 gap-3" id="methods-grid">
+
+        <!-- PayPal -->
+        <label class="method-card cursor-pointer" data-method="paypal">
+          <input type="radio" name="method" value="paypal" class="hidden"/>
+          <div class="flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-primary/30 transition method-option">
+            <div class="w-9 h-9 rounded-lg bg-[#003087]/20 border border-[#009cde]/20 flex items-center justify-center shrink-0 text-base">🅿️</div>
+            <div>
+              <p class="text-xs font-normal text-white">PayPal</p>
+              <p class="text-gray-500 text-[10px] mt-0.5">Réception sous 24–48h</p>
+            </div>
+          </div>
+        </label>
+
+        <!-- Virement IBAN -->
+        <label class="method-card cursor-pointer" data-method="virement">
+          <input type="radio" name="method" value="virement" class="hidden"/>
+          <div class="flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-primary/30 transition method-option">
+            <div class="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0 text-base">🏦</div>
+            <div>
+              <p class="text-xs font-normal text-white">Virement bancaire</p>
+              <p class="text-gray-500 text-[10px] mt-0.5">IBAN — 3 à 5 jours ouvrés</p>
+            </div>
+          </div>
+        </label>
+
+        <!-- Bitcoin -->
+        <label class="method-card cursor-pointer" data-method="bitcoin">
+          <input type="radio" name="method" value="bitcoin" class="hidden"/>
+          <div class="flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-primary/30 transition method-option">
+            <div class="w-9 h-9 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0 text-base">₿</div>
+            <div>
+              <p class="text-xs font-normal text-white">Bitcoin (BTC)</p>
+              <p class="text-gray-500 text-[10px] mt-0.5">Converti au taux du jour</p>
+            </div>
+          </div>
+        </label>
+
+        <!-- USDT -->
+        <label class="method-card cursor-pointer" data-method="usdt">
+          <input type="radio" name="method" value="usdt" class="hidden"/>
+          <div class="flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-primary/30 transition method-option">
+            <div class="w-9 h-9 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center shrink-0 text-base">💲</div>
+            <div>
+              <p class="text-xs font-normal text-white">USDT (Tether)</p>
+              <p class="text-gray-500 text-[10px] mt-0.5">Réseau TRC-20 ou ERC-20</p>
+            </div>
+          </div>
+        </label>
+
+      </div>
+    </div>
+
+    <!-- Champs dynamiques selon méthode -->
+    <div id="method-fields" class="mb-6 space-y-3 hidden">
+
+      <!-- PayPal -->
+      <div id="fields-paypal" class="hidden">
+        <label class="block text-gray-500 text-xs mb-1.5">Adresse e-mail PayPal</label>
+        <input id="paypal-email" type="email" placeholder="vous@exemple.com"
+               class="w-full rounded-xl px-3 py-2 text-xs"/>
+      </div>
+
+      <!-- Virement -->
+      <div id="fields-virement" class="hidden space-y-3">
+        <div>
+          <label class="block text-gray-500 text-xs mb-1.5">Titulaire du compte</label>
+          <input id="iban-name" type="text" placeholder="Prénom NOM"
+                 class="w-full rounded-xl px-3 py-2 text-xs"/>
+        </div>
+        <div>
+          <label class="block text-gray-500 text-xs mb-1.5">IBAN</label>
+          <input id="iban-number" type="text" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                 class="w-full rounded-xl px-3 py-2 text-xs font-mono tracking-wider"/>
+        </div>
+        <div>
+          <label class="block text-gray-500 text-xs mb-1.5">BIC / SWIFT</label>
+          <input id="iban-bic" type="text" placeholder="XXXXFRPPXXX"
+                 class="w-full rounded-xl px-3 py-2 text-xs font-mono"/>
+        </div>
+        <!-- Info légale virement -->
+        <div class="p-3 rounded-xl border border-blue-500/20 bg-blue-500/5">
+          <p class="text-blue-300/80 text-[10px] leading-relaxed">
+            ℹ️ Les virements bancaires sont légalement autorisés entre une entreprise (SAS, SARL, auto-entrepreneur…) et ses utilisateurs/prestataires, dans le cadre d'une rémunération de services ou commissions d'affiliation. Un justificatif peut être demandé pour les montants supérieurs à 1 000 €.
+          </p>
+        </div>
+      </div>
+
+      <!-- Bitcoin -->
+      <div id="fields-bitcoin" class="hidden space-y-3">
+        <div>
+          <label class="block text-gray-500 text-xs mb-1.5">Adresse wallet Bitcoin</label>
+          <input id="btc-address" type="text" placeholder="bc1q… ou 1… ou 3…"
+                 class="w-full rounded-xl px-3 py-2 text-xs font-mono"/>
+        </div>
+        <div class="p-3 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+          <p class="text-yellow-300/80 text-[10px] leading-relaxed">
+            ⚠️ Vérifiez votre adresse avant de confirmer. Les transactions crypto sont irréversibles. Le montant sera converti au taux BTC/EUR du moment du traitement.
+          </p>
+        </div>
+      </div>
+
+      <!-- USDT -->
+      <div id="fields-usdt" class="hidden space-y-3">
+        <div>
+          <label class="block text-gray-500 text-xs mb-1.5">Adresse wallet USDT</label>
+          <input id="usdt-address" type="text" placeholder="TXxx… (TRC-20) ou 0x… (ERC-20)"
+                 class="w-full rounded-xl px-3 py-2 text-xs font-mono"/>
+        </div>
+        <div>
+          <label class="block text-gray-500 text-xs mb-1.5">Réseau</label>
+          <select id="usdt-network" class="w-full rounded-xl px-3 py-2 text-xs">
+            <option value="TRC-20">TRC-20 (TRON) — Frais réduits</option>
+            <option value="ERC-20">ERC-20 (Ethereum)</option>
+          </select>
+        </div>
+        <div class="p-3 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+          <p class="text-yellow-300/80 text-[10px] leading-relaxed">
+            ⚠️ Assurez-vous que votre wallet accepte le réseau sélectionné. Les erreurs de réseau entraînent une perte définitive des fonds.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Récap + Bouton -->
+    <div id="recap-box" class="hidden p-4 rounded-xl border border-white/5 bg-white/[0.02] mb-4">
+      <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-2">Récapitulatif</p>
+      <div class="flex justify-between text-xs text-gray-300 mb-1">
+        <span>Montant demandé</span>
+        <span id="recap-montant">—</span>
+      </div>
+      <div class="flex justify-between text-xs text-gray-300 mb-1">
+        <span>Méthode</span>
+        <span id="recap-method">—</span>
+      </div>
+      <div class="flex justify-between text-xs text-gray-300">
+        <span>Délai estimé</span>
+        <span id="recap-delai">—</span>
+      </div>
+      <div class="glow-line mt-3"></div>
+      <div class="flex justify-between text-xs text-white font-normal mt-3">
+        <span>Vous recevrez</span>
+        <span id="recap-net" class="text-primary">—</span>
+      </div>
+    </div>
+
+    <button id="submit-btn" onclick="soumettreDemande()"
+            class="btn-primary w-full py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+      Confirmer la demande de retrait
+    </button>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="rs-card rounded-2xl p-6">
+    <div class="flex items-center gap-2 mb-5">
+      <span class="section-tag">📋 Historique</span>
+    </div>
+    <h2 class="text-sm font-normal text-white mb-4">Mes retraits</h2>
+    <div id="historique-list" class="space-y-2">
+      <p class="text-gray-600 text-xs text-center py-6">Chargement…</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="py-7 text-center">
+  <div class="flex items-center justify-center gap-2 mb-2">
+    <div class="flex flex-col items-end">
+      <img src="/images/logoblanc.svg" alt="MyAffilinks.io" class="h-4 w-auto object-contain" />
+      <span class="mt-0.5 pr-0.5 text-[6px] font-medium tracking-[0.15em] text-gray-400 whitespace-nowrap">POURQUOI PAS TOI</span>
+    </div>
+  </div>
+  <p class="text-gray-600 text-xs">© 2026</p>
+</footer>
+
+<style>
+  .method-option.selected {
+    border-color: rgba(249,115,22,0.5) !important;
+    background: rgba(249,115,22,0.06) !important;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .status-en_attente  { background: rgba(234,179,8,0.1);  color: #facc15; border: 1px solid rgba(234,179,8,0.2); }
+  .status-traite      { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+  .status-refuse      { background: rgba(239,68,68,0.1);  color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+</style>
+
+<script type="module">
+  import { supabase } from '/supabase/client.js'
+
+  let currentUser = null
+  let solde = 0
+  let selectedMethod = null
+
+  const methodLabels = {
+    paypal:   { label: 'PayPal',            delai: '24–48h' },
+    virement: { label: 'Virement bancaire', delai: '3–5 jours ouvrés' },
+    bitcoin:  { label: 'Bitcoin (BTC)',      delai: '1–3 jours ouvrés' },
+    usdt:     { label: 'USDT',              delai: '1–2 jours ouvrés' },
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  async function init() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    currentUser = user
+
+    await Promise.all([loadSolde(), loadHistorique()])
+    setupMethodCards()
+    setupInputListeners()
+  }
+
+  // ── Solde ─────────────────────────────────────────────────────────────────
+  async function loadSolde() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('solde, total_retire')
+      .eq('user_id', currentUser.id)
+      .single()
+
+    solde = data?.solde ?? 0
+    const totalRetire = data?.total_retire ?? 0
+
+    document.getElementById('solde-display').textContent =
+      solde.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €'
+    document.getElementById('total-retire-display').textContent =
+      totalRetire.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €'
+  }
+
+  // ── Historique ────────────────────────────────────────────────────────────
+  async function loadHistorique() {
+    const { data, error } = await supabase
+      .from('retraits')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    const container = document.getElementById('historique-list')
+
+    if (error || !data || data.length === 0) {
+      container.innerHTML = '<p class="text-gray-600 text-xs text-center py-6">Aucun retrait effectué pour le moment.</p>'
+      return
+    }
+
+    container.innerHTML = data.map(r => {
+      const date = new Date(r.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+      const statusMap = { en_attente: 'En attente', traite: 'Traité', refuse: 'Refusé' }
+      const statusLabel = statusMap[r.status] || r.status
+      return `
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-3.5 rounded-xl border border-white/5 bg-white/[0.02]">
+          <div>
+            <p class="text-xs font-normal text-gray-200">${(methodLabels[r.methode]?.label) || r.methode}</p>
+            <p class="text-gray-500 text-[10px] mt-0.5">${date}</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-light text-white">${parseFloat(r.montant).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
+            <span class="status-badge status-${r.status}">${statusLabel}</span>
+          </div>
+        </div>
+      `
+    }).join('')
+  }
+
+  // ── Method cards ──────────────────────────────────────────────────────────
+  function setupMethodCards() {
+    document.querySelectorAll('.method-card').forEach(card => {
+      card.addEventListener('click', () => {
+        selectedMethod = card.dataset.method
+
+        // Visuellement sélectionner
+        document.querySelectorAll('.method-option').forEach(o => o.classList.remove('selected'))
+        card.querySelector('.method-option').classList.add('selected')
+        card.querySelector('input[type=radio]').checked = true
+
+        // Afficher les champs correspondants
+        document.getElementById('method-fields').classList.remove('hidden')
+        document.querySelectorAll('[id^="fields-"]').forEach(f => f.classList.add('hidden'))
+        const target = document.getElementById(`fields-${selectedMethod}`)
+        if (target) target.classList.remove('hidden')
+
+        updateRecap()
+        checkSubmitBtn()
+      })
+    })
+  }
+
+  // ── Input listeners ───────────────────────────────────────────────────────
+  function setupInputListeners() {
+    document.getElementById('montant-input').addEventListener('input', () => {
+      updateRecap(); checkSubmitBtn()
+    })
+    // IBAN auto-format
+    const ibanInput = document.getElementById('iban-number')
+    ibanInput.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\s/g, '').toUpperCase()
+      v = v.match(/.{1,4}/g)?.join(' ') || v
+      e.target.value = v
+    })
+  }
+
+  // ── Recap ─────────────────────────────────────────────────────────────────
+  function updateRecap() {
+    const montant = parseFloat(document.getElementById('montant-input').value) || 0
+    if (!selectedMethod || montant < 15) {
+      document.getElementById('recap-box').classList.add('hidden')
+      return
+    }
+    document.getElementById('recap-box').classList.remove('hidden')
+    const info = methodLabels[selectedMethod]
+    document.getElementById('recap-montant').textContent = montant.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €'
+    document.getElementById('recap-method').textContent  = info.label
+    document.getElementById('recap-delai').textContent   = info.delai
+    document.getElementById('recap-net').textContent     = montant.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €'
+  }
+
+  // ── Quick amounts ─────────────────────────────────────────────────────────
+  window.setMontant = (val) => {
+    const input = document.getElementById('montant-input')
+    if (val === 'all') {
+      input.value = solde > 0 ? solde.toFixed(2) : ''
+    } else {
+      input.value = Math.min(val, solde).toFixed(2)
+    }
+    updateRecap(); checkSubmitBtn()
+  }
+
+  // ── Check submit ──────────────────────────────────────────────────────────
+  function checkSubmitBtn() {
+    const montant = parseFloat(document.getElementById('montant-input').value) || 0
+    const ok = selectedMethod && montant >= 15 && montant <= solde
+    document.getElementById('submit-btn').disabled = !ok
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg, ok = true) {
+    const t = document.getElementById('retrait-toast')
+    t.textContent = msg
+    t.className = `mb-5 px-4 py-3 rounded-xl text-xs font-normal ${ok ? 'bg-green-500/15 text-green-400 border border-green-500/20' : 'bg-red-500/15 text-red-400 border border-red-500/20'}`
+    t.classList.remove('hidden')
+    t.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => t.classList.add('hidden'), 5000)
+  }
+
+  // ── Build payload details ─────────────────────────────────────────────────
+  function buildDetails() {
+    switch (selectedMethod) {
+      case 'paypal':
+        return { email: document.getElementById('paypal-email').value.trim() }
+      case 'virement':
+        return {
+          titulaire: document.getElementById('iban-name').value.trim(),
+          iban: document.getElementById('iban-number').value.trim(),
+          bic:  document.getElementById('iban-bic').value.trim(),
+        }
+      case 'bitcoin':
+        return { adresse: document.getElementById('btc-address').value.trim() }
+      case 'usdt':
+        return {
+          adresse: document.getElementById('usdt-address').value.trim(),
+          reseau:  document.getElementById('usdt-network').value,
+        }
+    }
+    return {}
+  }
+
+  // ── Validate details ──────────────────────────────────────────────────────
+  function validateDetails() {
+    const d = buildDetails()
+    switch (selectedMethod) {
+      case 'paypal':
+        if (!d.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email))
+          return 'Veuillez saisir une adresse e-mail PayPal valide.'
+        break
+      case 'virement':
+        if (!d.titulaire) return 'Veuillez saisir le titulaire du compte.'
+        if (!d.iban || d.iban.replace(/\s/g,'').length < 14) return 'Veuillez saisir un IBAN valide.'
+        if (!d.bic)  return 'Veuillez saisir le BIC / SWIFT.'
+        break
+      case 'bitcoin':
+        if (!d.adresse || d.adresse.length < 26) return 'Veuillez saisir une adresse Bitcoin valide.'
+        break
+      case 'usdt':
+        if (!d.adresse || d.adresse.length < 20) return 'Veuillez saisir une adresse USDT valide.'
+        break
+    }
+    return null
+  }
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+  window.soumettreDemande = async () => {
+    if (!currentUser) return
+    const montant = parseFloat(document.getElementById('montant-input').value)
+    if (!montant || montant < 15) { showToast('Le montant minimum est de 15 €.', false); return }
+    if (montant > solde) { showToast('Solde insuffisant.', false); return }
+
+    const err = validateDetails()
+    if (err) { showToast(err, false); return }
+
+    const btn = document.getElementById('submit-btn')
+    btn.textContent = 'Envoi en cours…'
+    btn.disabled = true
+
+    try {
+      // Insérer la demande
+      const { error: insertErr } = await supabase.from('retraits').insert({
+        user_id:  currentUser.id,
+        montant,
+        methode:  selectedMethod,
+        details:  buildDetails(),
+        status:   'en_attente',
+      })
+      if (insertErr) throw insertErr
+
+      // Déduire du solde
+      const { error: updateErr } = await supabase
+        .from('profiles')
+        .update({
+          solde:        solde - montant,
+          total_retire: supabase.rpc ? undefined : undefined, // géré par trigger côté DB si dispo
+        })
+        .eq('user_id', currentUser.id)
+      if (updateErr) throw updateErr
+
+      showToast('✓ Demande de retrait envoyée ! Vous recevrez vos fonds dans les délais indiqués.')
+      // Reset form
+      document.getElementById('montant-input').value = ''
+      document.getElementById('method-fields').classList.add('hidden')
+      document.getElementById('recap-box').classList.add('hidden')
+      document.querySelectorAll('.method-option').forEach(o => o.classList.remove('selected'))
+      document.querySelectorAll('input[name=method]').forEach(r => r.checked = false)
+      selectedMethod = null
+      await Promise.all([loadSolde(), loadHistorique()])
+    } catch (e) {
+      console.error(e)
+      showToast('Erreur : ' + (e.message || 'impossible d\'envoyer la demande.'), false)
+    }
+
+    btn.textContent = 'Confirmer la demande de retrait'
+    btn.disabled = false
+  }
+
+  init()
+</script>

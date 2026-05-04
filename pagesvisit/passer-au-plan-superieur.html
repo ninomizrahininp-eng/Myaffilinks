@@ -1,0 +1,221 @@
+<!-- GUARD -->
+<script>
+  if (window.self === window.top && !window.__username) {
+    window.location.replace('/navbarvisit.html');
+  }
+</script>
+
+<main class="pt-20 pb-14 px-5 max-w-6xl mx-auto" data-edit-id="plans-main">
+
+  <!-- HERO -->
+  <div class="text-center mb-12 fade-up" data-edit-id="plans-hero">
+    <span class="section-tag mb-4 inline-flex" data-edit-id="plans-hero-tag">✨ Plans Premium</span>
+    <h1 class="text-3xl md:text-5xl font-light leading-tight tracking-tight text-white mb-4" data-edit-id="plans-title">
+      Nos offres<br/><span class="text-white" data-edit-id="plans-title-accent">premium</span>
+    </h1>
+    <p class="text-gray-400 text-sm md:text-base max-w-2xl mx-auto" data-edit-id="plans-subtitle">
+      Touchez une plus grosse part de vos ventes. Choisissez le pourcentage et le nombre de liens concernés.
+    </p>
+    <p class="text-gray-500 text-xs mt-2" data-edit-id="plans-subtitle2">
+      Les prix varient en fonction du % et du nombre de liens sélectionnés.
+    </p>
+  </div>
+
+  <!-- PLANS -->
+  <div class="grid md:grid-cols-3 gap-4 lg:gap-5 mb-12" data-edit-id="plans-grid">
+
+    <!-- STARTER -->
+    <div class="plan-card p-6 flex flex-col" data-edit-id="plan-starter">
+      <div class="text-center mb-6" data-edit-id="plan-starter-header">
+        <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-2" data-edit-id="plan-starter-label">Starter</p>
+        <h3 class="text-lg font-light text-white mb-1.5" data-edit-id="plan-starter-title">Démarrer</h3>
+        <p class="text-gray-500 text-xs" data-edit-id="plan-starter-desc">Pour débuter en premium</p>
+      </div>
+
+      <div class="glow-line mb-6"></div>
+
+      <div class="flex items-center justify-center gap-2 mb-5" data-edit-id="plan-starter-selectors">
+        <select class="rounded-full px-3 py-2 font-display font-bold text-xl text-primary min-w-0 w-16 text-center num" data-edit-id="plan-starter-pct">
+          <option>10</option><option>12</option><option>15</option>
+        </select>
+        <span class="font-display text-xl font-bold text-primary" data-edit-id="plan-starter-pct-symbol">%</span>
+        <span class="text-gray-500 text-xs" data-edit-id="plan-starter-sur">sur</span>
+        <select class="rounded-full px-3 py-2 font-display font-bold text-xl text-primary min-w-0 w-16 text-center num" data-edit-id="plan-starter-links">
+          <option>5</option><option>7</option><option>10</option>
+        </select>
+        <span class="text-gray-500 text-xs" data-edit-id="plan-starter-links-label">liens</span>
+      </div>
+
+      <div class="text-center mb-6" data-edit-id="plan-starter-price-wrap">
+        <span class="text-4xl font-light text-white num" data-edit-id="plan-starter-price">20</span><span class="text-lg text-gray-400 num" data-edit-id="plan-starter-currency">€</span>
+        <p class="text-gray-500 text-xs mt-1.5" data-edit-id="plan-starter-period">/ mois</p>
+      </div>
+
+      <ul class="space-y-2.5 mb-6 flex-1" data-edit-id="plan-starter-features">
+        <li class="flex items-center gap-2.5 text-xs text-gray-500" data-edit-id="plan-starter-feat-1">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Tracking avancé
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-500" data-edit-id="plan-starter-feat-2">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Dashboard prioritaire
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-500" data-edit-id="plan-starter-feat-3">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Support dédié
+        </li>
+      </ul>
+
+      <button class="btn-ghost py-3 text-xs font-normal" data-edit-id="plan-starter-btn">
+        Passer au plan Starter
+      </button>
+    </div>
+
+    <!-- SUPÉRIEUR (featured) -->
+    <div class="plan-card featured p-6 flex flex-col relative" data-edit-id="plan-superieur">
+      <div class="absolute -top-3.5 left-1/2 -translate-x-1/2" data-edit-id="plan-superieur-badge-wrap">
+        <span class="badge-popular text-[10px]" data-edit-id="plan-superieur-badge">⭐ Le plus populaire</span>
+      </div>
+
+      <div class="text-center mb-6 mt-3" data-edit-id="plan-superieur-header">
+        <p class="text-[10px] text-primary uppercase tracking-widest mb-2" data-edit-id="plan-superieur-label">Supérieur</p>
+        <h3 class="text-lg font-light text-white mb-1.5" data-edit-id="plan-superieur-title">Performance</h3>
+        <p class="text-gray-400 text-xs" data-edit-id="plan-superieur-desc">Meilleur équilibre</p>
+      </div>
+
+      <div class="h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent mb-6"></div>
+
+      <div class="flex items-center justify-center gap-2 mb-5" data-edit-id="plan-superieur-selectors">
+        <select class="rounded-full px-3 py-2 font-display font-bold text-xl text-primary min-w-0 w-16 text-center num" data-edit-id="plan-superieur-pct">
+          <option>15</option><option>18</option><option>20</option>
+        </select>
+        <span class="font-display text-xl font-bold text-primary" data-edit-id="plan-superieur-pct-symbol">%</span>
+        <span class="text-gray-400 text-xs" data-edit-id="plan-superieur-sur">sur</span>
+        <select class="rounded-full px-3 py-2 font-display font-bold text-xl text-primary min-w-0 w-16 text-center num" data-edit-id="plan-superieur-links">
+          <option>10</option><option>12</option><option>15</option>
+        </select>
+        <span class="text-gray-400 text-xs" data-edit-id="plan-superieur-links-label">liens</span>
+      </div>
+
+      <div class="text-center mb-6" data-edit-id="plan-superieur-price-wrap">
+        <span class="text-4xl font-light text-primary num" data-edit-id="plan-superieur-price">35</span><span class="text-lg text-primary num" data-edit-id="plan-superieur-currency">€</span>
+        <p class="text-gray-400 text-xs mt-1.5" data-edit-id="plan-superieur-period">/ mois</p>
+      </div>
+
+      <ul class="space-y-2.5 mb-6 flex-1" data-edit-id="plan-superieur-features">
+        <li class="flex items-center gap-2.5 text-xs text-gray-400" data-edit-id="plan-superieur-feat-1">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Tracking avancé
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-400" data-edit-id="plan-superieur-feat-2">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Dashboard prioritaire
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-400" data-edit-id="plan-superieur-feat-3">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Support dédié
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-400" data-edit-id="plan-superieur-feat-4">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Commissions majorées
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-400" data-edit-id="plan-superieur-feat-5">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Analytics premium
+        </li>
+      </ul>
+
+      <button class="btn-primary py-3 text-xs font-normal" data-edit-id="plan-superieur-btn">
+        Passer au plan Supérieur
+      </button>
+    </div>
+
+    <!-- ULTIME -->
+    <div class="plan-card p-6 flex flex-col" data-edit-id="plan-ultime">
+      <div class="text-center mb-6" data-edit-id="plan-ultime-header">
+        <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-2" data-edit-id="plan-ultime-label">Ultime</p>
+        <h3 class="text-lg font-light text-white mb-1.5" data-edit-id="plan-ultime-title">Maximum</h3>
+        <p class="text-gray-500 text-xs" data-edit-id="plan-ultime-desc">Commissions maximales</p>
+      </div>
+
+      <div class="glow-line mb-6"></div>
+
+      <div class="flex items-center justify-center gap-2 mb-5" data-edit-id="plan-ultime-selectors">
+        <select class="rounded-full px-3 py-2 font-display font-bold text-xl text-primary min-w-0 w-16 text-center num" data-edit-id="plan-ultime-pct">
+          <option>20</option><option>25</option><option>30</option>
+        </select>
+        <span class="font-display text-xl font-bold text-primary" data-edit-id="plan-ultime-pct-symbol">%</span>
+        <span class="text-gray-500 text-xs" data-edit-id="plan-ultime-sur">sur</span>
+        <select class="rounded-full px-3 py-2 font-display font-bold text-xl text-primary min-w-0 w-16 text-center num" data-edit-id="plan-ultime-links">
+          <option>15</option><option>20</option><option>30</option>
+        </select>
+        <span class="text-gray-500 text-xs" data-edit-id="plan-ultime-links-label">liens</span>
+      </div>
+
+      <div class="text-center mb-6" data-edit-id="plan-ultime-price-wrap">
+        <span class="text-4xl font-light text-white num" data-edit-id="plan-ultime-price">60</span><span class="text-lg text-gray-400 num" data-edit-id="plan-ultime-currency">€</span>
+        <p class="text-gray-500 text-xs mt-1.5" data-edit-id="plan-ultime-period">/ mois</p>
+      </div>
+
+      <ul class="space-y-2.5 mb-6 flex-1" data-edit-id="plan-ultime-features">
+        <li class="flex items-center gap-2.5 text-xs text-gray-500" data-edit-id="plan-ultime-feat-1">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Tout du plan Supérieur
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-500" data-edit-id="plan-ultime-feat-2">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          <span class="num">30</span> liens maximum
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-500" data-edit-id="plan-ultime-feat-3">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Accès prioritaire aux offres
+        </li>
+        <li class="flex items-center gap-2.5 text-xs text-gray-500" data-edit-id="plan-ultime-feat-4">
+          <span class="w-4 h-4 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-xs">✓</span>
+          Manager personnel dédié
+        </li>
+      </ul>
+
+      <button class="btn-ghost py-3 text-xs font-normal" data-edit-id="plan-ultime-btn">
+        Passer au plan Ultime
+      </button>
+    </div>
+
+  </div>
+
+  <!-- FOOTER NOTE -->
+  <div class="text-center max-w-xl mx-auto" data-edit-id="plans-footer">
+    <div class="glow-line mb-6"></div>
+    <p class="text-gray-500 text-xs leading-relaxed" data-edit-id="plans-footer-text">
+      Tous les plans incluent : tracking avancé, dashboard prioritaire, support dédié, et commissions majorées.<br/>
+      Annulation possible à tout moment — sans engagement.
+    </p>
+    <a href="mon-compte.html"
+       data-page="/pagesvisit/mon-compte.html"
+       class="nav-spa text-primary/70 hover:text-primary text-xs font-normal mt-4 inline-block transition"
+       data-edit-id="plans-footer-link">
+      Voir vos abonnements actuels →
+    </a>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="py-7 text-center" data-edit-id="footer-root">
+  <div class="flex items-center justify-center gap-2 mb-2">
+    <div class="flex flex-col items-end">
+      <img src="/images/logoblanc.svg" alt="MyAffilinks.io" class="h-4 w-auto object-contain" />
+      <span class="mt-0.5 pr-0.5 text-[6px] font-medium tracking-[0.15em] text-gray-400 whitespace-nowrap">POURQUOI PAS TOI</span>
+    </div>
+  </div>
+  <p class="text-gray-600 text-xs" data-edit-id="footer-text">© 2026</p>
+</footer>
+
+<script>
+  document.querySelectorAll('.nav-spa').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault()
+      if (window.spaLoadPage) window.spaLoadPage(a.dataset.page)
+    })
+  })
+</script>

@@ -1,0 +1,186 @@
+<!-- GUARD -->
+<script>
+  if (window.self === window.top && !window.__username) {
+    window.location.replace('/navbarvisit.html');
+  }
+</script>
+
+<main class="pt-20 pb-14 px-5 max-w-3xl mx-auto">
+
+  <!-- Loading -->
+  <div id="profile-loading" class="flex flex-col items-center justify-center py-24 text-gray-600">
+    <div class="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p class="text-xs uppercase tracking-wider">Chargement du profil…</p>
+  </div>
+
+  <!-- Error -->
+  <div id="profile-error" class="hidden text-center py-24 text-gray-600">
+    <p class="text-4xl mb-3">👤</p>
+    <p class="text-sm">Profil introuvable.</p>
+    <button onclick="history.back()" class="btn-ghost px-5 py-2 text-xs mt-5">← Retour</button>
+  </div>
+
+  <!-- Profile card -->
+  <div id="profile-card" class="hidden">
+
+    <!-- Back -->
+    <button onclick="history.back()" class="text-gray-500 hover:text-gray-300 text-xs transition mb-6 flex items-center gap-1.5">
+      ← Retour
+    </button>
+
+    <!-- Header -->
+    <div class="rs-card rounded-2xl p-8 mb-5 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+
+      <!-- Avatar -->
+      <div id="pp-avatar-wrap"
+           class="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-transparent rounded-2xl border border-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
+        <img id="pp-avatar-img" src="" alt="" class="hidden w-full h-full object-cover"/>
+        <span id="pp-avatar-initial" class="font-light text-primary text-3xl">?</span>
+      </div>
+
+      <!-- Info -->
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <h1 id="pp-username" class="text-xl font-light text-white tracking-tight">—</h1>
+          <span id="pp-plan-badge" class="hidden text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border"></span>
+          <span id="pp-self-badge" class="hidden text-[10px] text-primary/70 bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">Vous</span>
+        </div>
+        <p id="pp-bio" class="text-gray-400 text-sm leading-relaxed mt-1 max-w-lg">—</p>
+        <p id="pp-since" class="text-gray-600 text-xs mt-3">Membre depuis —</p>
+      </div>
+    </div>
+
+    <!-- Stats publiques -->
+    <div class="grid grid-cols-3 gap-3 mb-5">
+      <div class="rs-card rounded-xl p-4 text-center">
+        <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5">Liens actifs</p>
+        <p id="pp-stat-links" class="text-xl font-light text-white num">—</p>
+      </div>
+      <div class="rs-card rounded-xl p-4 text-center">
+        <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5">Clics totaux</p>
+        <p id="pp-stat-clicks" class="text-xl font-light text-white num">—</p>
+      </div>
+      <div class="rs-card rounded-xl p-4 text-center">
+        <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5">Classement</p>
+        <p id="pp-stat-rank" class="text-xl font-light text-white num">—</p>
+      </div>
+    </div>
+
+    <!-- Badges / affilinks publics (optionnel) -->
+    <div id="pp-affilinks-section" class="hidden rs-card rounded-2xl p-6">
+      <span class="section-tag mb-4 inline-flex">🔗 Affilinks partagés</span>
+      <div id="pp-affilinks-list" class="space-y-2"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="py-7 text-center">
+  <div class="flex items-center justify-center gap-2 mb-2">
+    <div class="flex flex-col items-end">
+      <img src="/images/logoblanc.svg" alt="MyAffilinks.io" class="h-4 w-auto object-contain" />
+      <span class="mt-0.5 pr-0.5 text-[6px] font-medium tracking-[0.15em] text-gray-400 whitespace-nowrap">POURQUOI PAS TOI</span>
+    </div>
+  </div>
+  <p class="text-gray-600 text-xs">© 2026</p>
+</footer>
+
+<script type="module">
+  import { supabase } from '/supabase/client.js'
+
+  async function loadProfile() {
+    const params  = new URLSearchParams(window.location.search)
+    const userId  = params.get('id')
+
+    if (!userId) { showError(); return }
+
+    // Get current user to detect "self"
+    const { data: { user: me } } = await supabase.auth.getUser()
+
+    // Fetch profile
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('username, bio, avatar_url, plan, created_at, user_id')
+      .eq('user_id', userId)
+      .single()
+
+    if (error || !profile) { showError(); return }
+
+    // ── Populate ───────────────────────────────────────────────────────────
+    document.getElementById('pp-username').textContent = profile.username || 'Utilisateur'
+
+    // Avatar
+    if (profile.avatar_url) {
+      const img = document.getElementById('pp-avatar-img')
+      img.src = profile.avatar_url
+      img.classList.remove('hidden')
+      document.getElementById('pp-avatar-initial').classList.add('hidden')
+    } else {
+      document.getElementById('pp-avatar-initial').textContent =
+        (profile.username || '?').charAt(0).toUpperCase()
+    }
+
+    // Bio
+    const bio = document.getElementById('pp-bio')
+    bio.textContent = profile.bio || 'Aucune biographie renseignée.'
+    if (!profile.bio) bio.classList.add('italic', 'text-gray-600')
+
+    // Member since
+    if (profile.created_at) {
+      const d = new Date(profile.created_at)
+      document.getElementById('pp-since').textContent =
+        'Membre depuis ' + d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+    }
+
+    // Plan badge
+    if (profile.plan && profile.plan !== 'free') {
+      const badge = document.getElementById('pp-plan-badge')
+      const colors = {
+        starter:   'text-blue-400 bg-blue-400/10 border-blue-400/20',
+        superieur: 'text-primary bg-primary/10 border-primary/20',
+        ultime:    'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
+      }
+      badge.textContent = profile.plan
+      badge.className = `text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${colors[profile.plan] || 'text-gray-400 border-gray-600'}`
+      badge.classList.remove('hidden')
+    }
+
+    // Self badge
+    if (me && me.id === userId) {
+      document.getElementById('pp-self-badge').classList.remove('hidden')
+    }
+
+    // ── Stats (optional — from profiles or a stats view) ───────────────────
+    // You can replace these with real columns if you expose them in profiles
+    document.getElementById('pp-stat-links').textContent  = '—'
+    document.getElementById('pp-stat-clicks').textContent = '—'
+    document.getElementById('pp-stat-rank').textContent   = '—'
+
+    // Try fetching aggregated stats if available
+    try {
+      const { data: stats } = await supabase
+        .from('profiles')
+        .select('total_clicks, total_links, rank')
+        .eq('user_id', userId)
+        .single()
+      if (stats) {
+        if (stats.total_clicks != null) document.getElementById('pp-stat-clicks').textContent = stats.total_clicks.toLocaleString('fr-FR')
+        if (stats.total_links  != null) document.getElementById('pp-stat-links').textContent  = stats.total_links
+        if (stats.rank         != null) document.getElementById('pp-stat-rank').textContent   = stats.rank + 'ème'
+      }
+    } catch { /* stats not available — shows — */ }
+
+    // ── Show card ──────────────────────────────────────────────────────────
+    document.getElementById('profile-loading').classList.add('hidden')
+    document.getElementById('profile-card').classList.remove('hidden')
+  }
+
+  function showError() {
+    document.getElementById('profile-loading').classList.add('hidden')
+    document.getElementById('profile-error').classList.remove('hidden')
+  }
+
+  loadProfile()
+</script>
