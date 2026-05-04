@@ -239,16 +239,15 @@
   }
 
   // ── Générer ou récupérer le lien unique user+offre ─────────────────────────
+  // Le lien pointe vers /api/go qui logue le clic CÔTÉ SERVEUR avant de rediriger.
+  // Ainsi chaque partage sur WhatsApp, réseaux sociaux, etc. est bien compté.
   async function getOrCreateLink(offer) {
-    // Construire l'URL trackée : url_offre?ref=user_id
-    const baseUrl = offer.url || ''
-    if (!baseUrl) return '⚠️ URL de l\'offre manquante'
+    if (!offer.url) return '⚠️ URL de l\'offre manquante'
 
-    // Ajouter le paramètre ?ref=user_id (ou &ref= si déjà des params)
-    const separator = baseUrl.includes('?') ? '&' : '?'
-    const trackingUrl = `${baseUrl}${separator}ref=${currentUser.id}`
+    // Le lien de tracking passe par notre serverless function Vercel
+    const trackingUrl = `${window.location.origin}/api/go?ref=${currentUser.id}&offer=${offer.id}`
 
-    // Vérifier si ce lien existe déjà en base
+    // Sauvegarder en base si pas encore fait (pour retrouver les liens dans le dashboard)
     const { data: existing } = await supabase
       .from('user_links')
       .select('tracking_url')
@@ -256,18 +255,12 @@
       .eq('offer_id', offer.id)
       .maybeSingle()
 
-    if (existing) return existing.tracking_url
-
-    // Sinon, créer l'entrée
-    const { error } = await supabase.from('user_links').insert({
-      user_id:      currentUser.id,
-      offer_id:     offer.id,
-      tracking_url: trackingUrl,
-    })
-
-    if (error) {
-      console.error('Erreur création user_link:', error)
-      // Même en cas d'erreur d'insert (ex: doublon race condition), retourner l'URL
+    if (!existing) {
+      await supabase.from('user_links').insert({
+        user_id:      currentUser.id,
+        offer_id:     offer.id,
+        tracking_url: trackingUrl,
+      })
     }
 
     return trackingUrl
@@ -286,22 +279,15 @@
     }
   }
 
-  // ── Aller sur l'offre + tracker le clic ──────────────────────────────────
-  window.goToOffer = async () => {
-    if (!currentOffer || !currentUser) return
-
-    // Enregistrer le clic en base
-    await supabase.from('link_clicks').insert({
-      user_id:  currentUser.id,
-      offer_id: currentOffer.id,
-    })
-
-    // Mettre à jour le compteur dans la modal
+  // ── Aller sur l'offre ────────────────────────────────────────────────────
+  // Le clic est loggué automatiquement par /api/go côté serveur Vercel.
+  // Pas besoin d'insérer manuellement dans link_clicks ici.
+  window.goToOffer = () => {
+    if (!currentTrackingUrl) return
+    // Mettre à jour le compteur localement (optimiste)
     const current = parseInt(document.getElementById('modal-clicks').textContent.replace(/\s/g, '')) || 0
     document.getElementById('modal-clicks').textContent = (current + 1).toLocaleString('fr-FR')
-
-    // Ouvrir le lien
-    window.open(currentTrackingUrl || currentOffer.url, '_blank')
+    window.open(currentTrackingUrl, '_blank')
   }
 
   // ── Fermer la modal ───────────────────────────────────────────────────────
