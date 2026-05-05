@@ -86,7 +86,7 @@
         </button>
       </div>
       <p class="text-gray-600 text-[10px] mt-2">
-        ℹ️ Ce lien t'est propre. Chaque clic est enregistré dans ton tableau de bord.
+        ℹ️ Ce lien t'est propre. Chaque clic est enregistré côté serveur automatiquement.
       </p>
     </div>
 
@@ -102,9 +102,9 @@
       </div>
     </div>
 
-    <!-- Bouton aller sur l'offre (avec tracking clic) -->
+    <!-- Bouton aller sur l'offre -->
     <button onclick="goToOffer()" class="w-full btn-primary py-3 text-xs">
-      🚀 Accéder à l'offre (et tracker ce clic)
+      🚀 Accéder à l'offre
     </button>
 
   </div>
@@ -124,20 +124,23 @@
 <script type="module">
   import { supabase } from '/supabase/client.js'
 
-  // ── State ────────────────────────────────────────────────────────────────
-  let currentUser    = null
-  let currentOffer   = null   // offre sélectionnée dans la modal
+  // ── STATE ────────────────────────────────────────────────────────────────
+  let currentUser        = null
+  let currentOffer       = null
   let currentTrackingUrl = null
 
-  // ── Init ─────────────────────────────────────────────────────────────────
+  // ── INIT ─────────────────────────────────────────────────────────────────
   async function init() {
     const { data: { user } } = await supabase.auth.getUser()
     currentUser = user
 
     let userPlan = 'free'
     if (user) {
-      const { data: p } = await supabase.from('profiles')
-        .select('plan, username').eq('user_id', user.id).single()
+      const { data: p } = await supabase
+        .from('profiles')
+        .select('plan, username')
+        .eq('user_id', user.id)
+        .single()
       userPlan = p?.plan || 'free'
       if (p?.username) {
         const el = document.getElementById('hero-username')
@@ -148,15 +151,19 @@
     await loadOffers(userPlan)
   }
 
-  // ── Charger les offres ────────────────────────────────────────────────────
+  // ── CHARGER LES OFFRES ────────────────────────────────────────────────────
   async function loadOffers(userPlan) {
     try {
       const { data: offers, error } = await supabase
-        .from('offers').select('*').eq('status', 'active').order('created_at', { ascending: false })
+        .from('offers')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
 
       if (error) throw error
 
       const grid = document.getElementById('affilinks-offers-grid')
+
       if (!offers || !offers.length) {
         grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-600">
           <p class="text-4xl mb-3">📦</p>
@@ -189,10 +196,8 @@
               <span class="text-gray-500 text-xs">de commission</span>
             </div>
             <div class="flex gap-2">
-              <button class="flex-1 btn-ghost py-2 text-xs">
-                Détails
-              </button>
-              <button onclick="openLinkModal(${JSON.stringify(o).replace(/"/g,'&quot;')})"
+              <button class="flex-1 btn-ghost py-2 text-xs">Détails</button>
+              <button onclick="openLinkModal(${JSON.stringify(o).replace(/"/g, '&quot;')})"
                       class="flex-1 btn-primary py-2 text-xs">
                 Obtenir mon lien
               </button>
@@ -207,47 +212,55 @@
     }
   }
 
-  // ── Ouvrir la modal avec le lien unique ───────────────────────────────────
+  // ── DÉTECTION ENVIRONNEMENT ───────────────────────────────────────────────
+  // En prod Vercel : /api/go gère le tracking + la redirection côté serveur.
+  // En local (Live Server, 127.0.0.1, localhost) : /api/go n'existe pas →
+  // on track directement via Supabase JS et on redirige côté client.
+  const IS_PROD = !['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname)
+
+  // L'URL que l'affilieur partage à ses visiteurs
+  // - En prod  → https://mon-site.vercel.app/api/go?ref=UID&offer=OID
+  // - En local → on stocke quand même la future URL prod dans la DB,
+  //              mais goToOffer() redirige directement (avec tracking Supabase)
+  function buildTrackingUrl(offer) {
+    if (IS_PROD) {
+      return `${window.location.origin}/api/go?ref=${encodeURIComponent(currentUser.id)}&offer=${encodeURIComponent(offer.id)}`
+    }
+    // En local : on construit l'URL prod "fictive" à stocker en base
+    // (elle sera fonctionnelle une fois déployé sur Vercel)
+    // Si tu as déjà un domaine Vercel, remplace la ligne ci-dessous par ton vrai domaine.
+    const PROD_DOMAIN = 'myaffilinks-974ld.vercel.app' // ← Remplace par ton domaine Vercel
+    return `${PROD_DOMAIN}/api/go?ref=${encodeURIComponent(currentUser.id)}&offer=${encodeURIComponent(offer.id)}`
+  }
+
+  // ── OUVRIR LA MODAL ───────────────────────────────────────────────────────
   window.openLinkModal = async (offer) => {
     if (!currentUser) { alert('Tu dois être connecté.'); return }
 
-    currentOffer = offer
+    currentOffer       = offer
+    currentTrackingUrl = null
 
-    // Remplir les infos de base
+    // Afficher la modal immédiatement
     document.getElementById('modal-offer-emoji').textContent   = offer.emoji || '📦'
     document.getElementById('modal-offer-title').textContent   = offer.title || '—'
     document.getElementById('modal-offer-company').textContent = offer.company || '—'
     document.getElementById('modal-commission').textContent    = (offer.commission || 0) + '%'
     document.getElementById('modal-tracking-url').textContent  = '⏳ Génération…'
     document.getElementById('modal-clicks').textContent        = '…'
-
     document.getElementById('link-modal').classList.remove('hidden')
 
-    // Générer ou récupérer le lien unique
     const trackingUrl = await getOrCreateLink(offer)
     currentTrackingUrl = trackingUrl
     document.getElementById('modal-tracking-url').textContent = trackingUrl
 
-    // Charger le nombre de clics pour cette offre
-    const { count } = await supabase
-      .from('link_clicks')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', currentUser.id)
-      .eq('offer_id', offer.id)
-
-    document.getElementById('modal-clicks').textContent = (count || 0).toLocaleString('fr-FR')
+    const clicks = await getClicksFromSupabase(offer.id)
+    document.getElementById('modal-clicks').textContent = clicks.toLocaleString('fr-FR')
   }
 
-  // ── Générer ou récupérer le lien unique user+offre ─────────────────────────
-  // Le lien pointe vers /api/go qui logue le clic CÔTÉ SERVEUR avant de rediriger.
-  // Ainsi chaque partage sur WhatsApp, réseaux sociaux, etc. est bien compté.
+  // ── ENREGISTRER LE LIEN DANS user_links ──────────────────────────────────
   async function getOrCreateLink(offer) {
-    if (!offer.url) return '⚠️ URL de l\'offre manquante'
+    const trackingUrl = buildTrackingUrl(offer)
 
-    // Le lien de tracking passe par notre serverless function Vercel
-    const trackingUrl = `${window.location.origin}/api/go?ref=${currentUser.id}&offer=${offer.id}`
-
-    // Sauvegarder en base si pas encore fait (pour retrouver les liens dans le dashboard)
     const { data: existing } = await supabase
       .from('user_links')
       .select('tracking_url')
@@ -255,18 +268,52 @@
       .eq('offer_id', offer.id)
       .maybeSingle()
 
-    if (!existing) {
-      await supabase.from('user_links').insert({
+    if (existing?.tracking_url) {
+      // Mettre à jour automatiquement les anciens liens YOURLS/localhost
+      const isStale = existing.tracking_url.includes('yourls') ||
+                      (existing.tracking_url.includes('localhost') && IS_PROD) ||
+                      (existing.tracking_url.includes('127.0.0.1') && IS_PROD)
+      if (isStale) {
+        await supabase
+          .from('user_links')
+          .update({ tracking_url: trackingUrl })
+          .eq('user_id', currentUser.id)
+          .eq('offer_id', offer.id)
+        return trackingUrl
+      }
+      return existing.tracking_url
+    }
+
+    // Nouveau lien → insérer
+    const { error: insertErr } = await supabase
+      .from('user_links')
+      .insert({
         user_id:      currentUser.id,
         offer_id:     offer.id,
         tracking_url: trackingUrl,
       })
-    }
+
+    if (insertErr) console.error('[affilinks] Supabase insert user_links:', insertErr)
 
     return trackingUrl
   }
 
-  // ── Copier le lien ────────────────────────────────────────────────────────
+  // ── COMPTER LES CLICS DEPUIS SUPABASE ────────────────────────────────────
+  // go.js insère dans link_clicks à chaque visite → on compte ici
+  async function getClicksFromSupabase(offerId) {
+    try {
+      const { count } = await supabase
+        .from('link_clicks')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', currentUser.id)
+        .eq('offer_id', offerId)
+      return count ?? 0
+    } catch {
+      return 0
+    }
+  }
+
+  // ── COPIER LE LIEN ────────────────────────────────────────────────────────
   window.copyTrackingUrl = async () => {
     if (!currentTrackingUrl) return
     try {
@@ -279,21 +326,40 @@
     }
   }
 
-  // ── Aller sur l'offre ────────────────────────────────────────────────────
-  // Le clic est loggué automatiquement par /api/go côté serveur Vercel.
-  // Pas besoin d'insérer manuellement dans link_clicks ici.
-  window.goToOffer = () => {
-    if (!currentTrackingUrl) return
-    // Mettre à jour le compteur localement (optimiste)
-    const current = parseInt(document.getElementById('modal-clicks').textContent.replace(/\s/g, '')) || 0
-    document.getElementById('modal-clicks').textContent = (current + 1).toLocaleString('fr-FR')
-    window.open(currentTrackingUrl, '_blank')
+  // ── ALLER SUR L'OFFRE ────────────────────────────────────────────────────
+  // En prod  → ouvre /api/go (Vercel gère le tracking + la redirect)
+  // En local → track directement via Supabase JS, puis redirige vers offer.url
+  window.goToOffer = async () => {
+    if (!currentOffer) return
+
+    if (IS_PROD) {
+      window.open(currentTrackingUrl, '_blank')
+    } else {
+      try {
+        await supabase.from('link_clicks').insert({
+          user_id:  currentUser.id,
+          offer_id: currentOffer.id,
+        })
+        const { data: p } = await supabase
+          .from('profiles').select('total_clicks').eq('user_id', currentUser.id).single()
+        await supabase
+          .from('profiles')
+          .update({ total_clicks: (p?.total_clicks ?? 0) + 1 })
+          .eq('user_id', currentUser.id)
+        const newClicks = await getClicksFromSupabase(currentOffer.id)
+        document.getElementById('modal-clicks').textContent = newClicks.toLocaleString('fr-FR')
+      } catch (e) {
+        console.warn('[affilinks] Tracking local échoué (non bloquant):', e)
+      }
+      const sep = (currentOffer.url || '').includes('?') ? '&' : '?'
+      window.open(`${currentOffer.url}${sep}ref=${currentUser.id}`, '_blank')
+    }
   }
 
-  // ── Fermer la modal ───────────────────────────────────────────────────────
+  // ── FERMER LA MODAL ───────────────────────────────────────────────────────
   window.closeLinkModal = () => {
     document.getElementById('link-modal').classList.add('hidden')
-    currentOffer = null
+    currentOffer       = null
     currentTrackingUrl = null
   }
 
