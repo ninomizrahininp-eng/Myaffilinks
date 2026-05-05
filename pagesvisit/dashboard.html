@@ -26,28 +26,28 @@
     <div class="stat-card p-4" data-edit-id="dash-stat-clics">
       <div class="flex items-center justify-between mb-3">
         <span class="text-base">🖱️</span>
-        <span id="dash-clicks-badge" class="text-[10px] font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">—</span>
+        <span id="dash-clicks-badge" class="text-[10px] font-semibold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full">—</span>
       </div>
       <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Clics totaux</p>
-      <p class="text-2xl font-light text-white num" id="dash-stat-clics-value">0</p>
+      <p class="text-2xl font-light text-white num" id="dash-stat-clics-value">—</p>
     </div>
 
     <div class="stat-card p-4" data-edit-id="dash-stat-ventes">
       <div class="flex items-center justify-between mb-3">
         <span class="text-base">🛒</span>
-        <span class="text-[10px] font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">+8%</span>
+        <span class="text-[10px] font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full" id="dash-sales-badge">—</span>
       </div>
       <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Ventes totales</p>
-      <p class="text-2xl font-light text-white num" data-edit-id="dash-stat-ventes-value">0</p>
+      <p class="text-2xl font-light text-white num" id="dash-stat-ventes-value">—</p>
     </div>
 
     <div class="stat-card p-4" data-edit-id="dash-stat-revenu">
       <div class="flex items-center justify-between mb-3">
         <span class="text-base text-primary">€</span>
-        <span class="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+5%</span>
+        <span class="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full" id="dash-revenue-badge">—</span>
       </div>
       <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Revenu total</p>
-      <p class="text-2xl font-light text-primary num" data-edit-id="dash-stat-revenu-value">0 €</p>
+      <p class="text-2xl font-light text-primary num" id="dash-stat-revenu-value">— €</p>
       <button onclick="if(window.spaLoadPage) window.spaLoadPage('/pagesvisit/retrait.html'); else window.location.href='/pagesvisit/retrait.html'" class="btn-ghost mt-3 px-3 py-1.5 text-xs w-full" data-edit-id="dash-stat-revenu-btn">
         💰 Retrait
       </button>
@@ -57,7 +57,7 @@
          onclick="if(window.spaLoadPage) window.spaLoadPage('/pagesvisit/classement.html'); else window.location.href='/pagesvisit/classement.html'">
       <div class="flex items-center justify-between mb-3">
         <span class="text-base">🏆</span>
-        <span class="text-[10px] font-semibold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full">—</span>
+        <span class="text-[10px] font-semibold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full">live</span>
       </div>
       <p class="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Classement</p>
       <p class="text-2xl font-light text-white num" id="dash-stat-rank-value">—</p>
@@ -79,7 +79,6 @@
       </button>
     </div>
 
-    <!-- Tableau des liens -->
     <div id="my-links-container">
       <div class="flex items-center justify-center py-10 text-gray-600">
         <div class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mr-3"></div>
@@ -95,7 +94,7 @@
         <span class="section-tag mb-2 inline-flex">📊 Analytics</span>
         <h2 class="text-sm font-normal text-gray-300" data-edit-id="dash-analyses-title">Performances globales</h2>
       </div>
-      <button class="btn-ghost px-4 py-2 text-xs flex items-center gap-2" data-edit-id="dash-analyses-refresh">
+      <button onclick="refreshCharts()" class="btn-ghost px-4 py-2 text-xs flex items-center gap-2" data-edit-id="dash-analyses-refresh">
         <span>🔄</span> Rafraîchir
       </button>
     </div>
@@ -150,76 +149,124 @@
 <script type="module">
   import { supabase } from '/supabase/client.js'
 
-  // ── State global pour les charts ─────────────────────────────────────────
+  // ── State global ─────────────────────────────────────────────────────────
   let lineConfigData = null
   let barConfigData  = null
   let modalChart     = null
+  let currentUser    = null
+  let realtimeChannel = null
 
   Chart.defaults.color       = 'rgba(255,255,255,0.28)'
   Chart.defaults.borderColor = 'rgba(255,255,255,0.04)'
   Chart.defaults.font        = { size: 9, family: "'DM Sans', sans-serif" }
 
   const lineOptions = {
-    responsive:true,
-    interaction:{mode:'index',intersect:false},
-    scales:{
-      y:{ beginAtZero:true, grid:{color:'rgba(255,255,255,0.03)'}, title:{display:true,text:'Clics',font:{size:8}} },
-      x:{ grid:{color:'rgba(255,255,255,0.03)'}, ticks:{maxRotation:0,maxTicksLimit:6} }
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, title: { display: true, text: 'Clics', font: { size: 8 } } },
+      x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { maxRotation: 0, maxTicksLimit: 6 } }
     },
-    plugins:{legend:{display:false}}
+    plugins: { legend: { display: false } }
   }
 
   const barOptions = {
-    responsive:true,
-    indexAxis:'y',
-    scales:{
-      x:{ beginAtZero:true, grid:{color:'rgba(255,255,255,0.03)'} },
-      y:{ grid:{display:false}, ticks:{font:{size:9}} }
+    responsive: true,
+    indexAxis: 'y',
+    scales: {
+      x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
+      y: { grid: { display: false }, ticks: { font: { size: 9 } } }
     },
-    plugins:{legend:{display:false}}
+    plugins: { legend: { display: false } }
   }
 
   // ── Init ─────────────────────────────────────────────────────────────────
   async function init() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    currentUser = user
 
-    // Charger profil + stats
+    await Promise.all([
+      loadProfileStats(),
+      loadMyLinks()
+    ])
+
+    setupRealtime()
+  }
+
+  // ── Charger profil + rang ─────────────────────────────────────────────────
+  async function loadProfileStats() {
+    // 1. Profil courant
     const { data: profile } = await supabase
       .from('profiles')
-      .select('total_clicks, total_sales, total_revenue, username')
-      .eq('user_id', user.id)
+      .select('total_clicks, total_sales, total_revenue')
+      .eq('user_id', currentUser.id)
       .single()
 
     if (profile) {
-      document.getElementById('dash-stat-clics-value').textContent =
-        (profile.total_clicks || 0).toLocaleString('fr-FR')
-      const salesEl = document.querySelector('[data-edit-id="dash-stat-ventes-value"]')
-      if (salesEl) salesEl.textContent = (profile.total_sales || 0).toLocaleString('fr-FR')
-      const revEl = document.querySelector('[data-edit-id="dash-stat-revenu-value"]')
-      if (revEl) revEl.textContent = (profile.total_revenue || 0).toLocaleString('fr-FR') + ' €'
+      const clicks  = profile.total_clicks  ?? 0
+      const sales   = profile.total_sales   ?? 0
+      const revenue = profile.total_revenue ?? 0
+
+      document.getElementById('dash-stat-clics-value').textContent  = clicks.toLocaleString('fr-FR')
+      document.getElementById('dash-stat-ventes-value').textContent = sales.toLocaleString('fr-FR')
+      document.getElementById('dash-stat-revenu-value').textContent = revenue.toLocaleString('fr-FR') + ' €'
+
+      // Badge clics (exemple : clics des 7 derniers jours vs 7 précédents)
+      await updateClicksBadge(clicks)
     }
 
-    // Classement
-    const { data: allProfiles } = await supabase
+    // 2. Rang — on utilise un count + filtre plutôt que de tout charger
+    const { count } = await supabase
       .from('profiles')
-      .select('user_id, total_clicks')
-      .order('total_clicks', { ascending: false })
+      .select('user_id', { count: 'exact', head: true })
+      .gt('total_clicks', profile?.total_clicks ?? 0)
 
-    if (allProfiles) {
-      const rank = allProfiles.findIndex(p => p.user_id === user.id) + 1
-      document.getElementById('dash-stat-rank-value').textContent = rank > 0 ? rank + 'ème' : '—'
-    }
-
-    await loadMyLinks(user)
+    const rank = (count ?? 0) + 1
+    document.getElementById('dash-stat-rank-value').textContent = rank + 'ème'
   }
 
-  // ── Charger les liens trackés de l'user ──────────────────────────────────
-  window.loadMyLinks = async (user) => {
-    if (!user) {
-      const { data: { user: u } } = await supabase.auth.getUser()
-      user = u
-    }
+  // ── Badge clics : comparer 7 derniers jours vs 7 jours précédents ─────────
+  async function updateClicksBadge(totalClicks) {
+    try {
+      const now     = new Date()
+      const d7ago   = new Date(now); d7ago.setDate(d7ago.getDate() - 7)
+      const d14ago  = new Date(now); d14ago.setDate(d14ago.getDate() - 14)
+
+      const { count: recent } = await supabase
+        .from('link_clicks')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', currentUser.id)
+        .gte('created_at', d7ago.toISOString())
+
+      const { count: previous } = await supabase
+        .from('link_clicks')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', currentUser.id)
+        .gte('created_at', d14ago.toISOString())
+        .lt('created_at', d7ago.toISOString())
+
+      const badge = document.getElementById('dash-clicks-badge')
+      if (previous > 0) {
+        const pct = Math.round(((recent - previous) / previous) * 100)
+        const up  = pct >= 0
+        badge.textContent = (up ? '+' : '') + pct + '%'
+        badge.className = `text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+          up ? 'text-green-400 bg-green-400/10' : 'text-red-400 bg-red-400/10'
+        }`
+      } else if (recent > 0) {
+        badge.textContent = '+' + recent + ' ce mois'
+        badge.className = 'text-[10px] font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full'
+      } else {
+        badge.textContent = '—'
+        badge.className = 'text-[10px] font-semibold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full'
+      }
+    } catch { /* badge reste à — */ }
+  }
+
+  // ── Charger les liens trackés depuis user_links + offers + link_clicks ─────
+  window.loadMyLinks = async (passedUser) => {
+    const user = passedUser || currentUser
     if (!user) return
 
     const container = document.getElementById('my-links-container')
@@ -228,12 +275,66 @@
       <span class="text-xs uppercase tracking-wider">Chargement…</span>
     </div>`
 
-    // Récupérer les liens de l'user avec le count des clics via la vue
-    const { data: links, error } = await supabase
+    // ── Stratégie : d'abord tenter la vue user_link_stats ─────────────────
+    let links = null
+    let error = null
+
+    const viewResult = await supabase
       .from('user_link_stats')
       .select('*')
       .eq('user_id', user.id)
       .order('click_count', { ascending: false })
+
+    // Si la vue n'existe pas ou retourne une erreur, fallback manuel
+    if (viewResult.error) {
+      console.warn('[dashboard] user_link_stats indisponible, fallback manuel:', viewResult.error.message)
+
+      // Fallback : user_links + offers
+      const { data: rawLinks, error: linksErr } = await supabase
+        .from('user_links')
+        .select('id, user_id, offer_id, tracking_url, created_at')
+        .eq('user_id', user.id)
+
+      error = linksErr
+
+      if (!linksErr && rawLinks?.length) {
+        // Récupérer les infos des offres en une seule requête
+        const offerIds = [...new Set(rawLinks.map(l => l.offer_id))]
+        const { data: offers } = await supabase
+          .from('offers')
+          .select('id, title, company, emoji, commission, url')
+          .in('id', offerIds)
+
+        const offersMap = Object.fromEntries((offers || []).map(o => [o.id, o]))
+
+        // Compter les clics par offer_id depuis link_clicks
+        const { data: clickRows } = await supabase
+          .from('link_clicks')
+          .select('offer_id')
+          .eq('user_id', user.id)
+
+        const clickCounts = {}
+        ;(clickRows || []).forEach(r => {
+          clickCounts[r.offer_id] = (clickCounts[r.offer_id] || 0) + 1
+        })
+
+        links = rawLinks.map(l => {
+          const offer = offersMap[l.offer_id] || {}
+          return {
+            user_id:      l.user_id,
+            offer_id:     l.offer_id,
+            tracking_url: l.tracking_url,
+            offer_title:   offer.title   || '—',
+            offer_company: offer.company || '—',
+            offer_emoji:   offer.emoji   || '📦',
+            commission:    offer.commission ?? 0,
+            click_count:   clickCounts[l.offer_id] || 0,
+          }
+        }).sort((a, b) => b.click_count - a.click_count)
+      }
+    } else {
+      links = viewResult.data
+    }
 
     if (error || !links || !links.length) {
       container.innerHTML = `<div class="text-center py-12 text-gray-600">
@@ -241,11 +342,11 @@
         <p class="text-xs">Aucun lien généré pour l'instant.</p>
         <p class="text-[10px] text-gray-700 mt-1">Va dans "Nos Affilinks" et clique "Obtenir mon lien".</p>
       </div>`
-      renderCharts([])
+      renderCharts([], user)
       return
     }
 
-    // Header tableau
+    // ── Tableau ────────────────────────────────────────────────────────────
     container.innerHTML = `
       <div class="overflow-x-auto">
         <table class="w-full text-xs">
@@ -257,8 +358,7 @@
               <th class="text-right py-3 px-3 text-[10px] text-gray-500 uppercase tracking-wider font-normal">Lien</th>
             </tr>
           </thead>
-          <tbody id="my-links-tbody">
-          </tbody>
+          <tbody id="my-links-tbody"></tbody>
         </table>
       </div>
     `
@@ -292,24 +392,27 @@
       </tr>
     `).join('')
 
-    renderCharts(links)
+    await renderCharts(links, user)
   }
 
-  // ── Copier un lien depuis le tableau ─────────────────────────────────────
+  // ── Copier un lien ────────────────────────────────────────────────────────
   window.copyLink = async (url) => {
     try {
       await navigator.clipboard.writeText(url)
-      // Feedback visuel léger
-      const btns = document.querySelectorAll('#my-links-tbody button')
-      // (on ne cherche pas le btn précis ici, juste un toast serait mieux)
+      // Toast léger
+      const toast = document.createElement('div')
+      toast.textContent = '✅ Lien copié !'
+      toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-primary text-black text-xs font-semibold px-4 py-2 rounded-full shadow-lg z-[9999] transition-opacity'
+      document.body.appendChild(toast)
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400) }, 2000)
     } catch {
       alert('Lien : ' + url)
     }
   }
 
-  // ── Rendre les charts depuis les données réelles ──────────────────────────
-  function renderCharts(links) {
-    // Chart 1 : Clics par offre (bar horizontal)
+  // ── Rendre les charts depuis les données réelles ───────────────────────────
+  async function renderCharts(links, user) {
+    // ── Bar chart : clics par offre ──────────────────────────────────────
     const labels = links.map(l => l.offer_title || '—').slice(0, 8)
     const counts  = links.map(l => l.click_count || 0).slice(0, 8)
 
@@ -324,24 +427,57 @@
       }]
     }
 
-    // Chart 2 : Clics des 30 derniers jours (on affiche les totaux statiques ici,
-    // pour un vrai historique il faudrait une colonne date dans link_clicks)
-    const dates = Array.from({length: 30}, (_, i) => {
+    // ── Line chart : vrais clics des 30 derniers jours depuis link_clicks ──
+    const dates = Array.from({ length: 30 }, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() - (29 - i))
-      return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })
+      return d
     })
 
+    const dateLabels = dates.map(d =>
+      d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
+    )
+
+    // Requête groupée : clics par jour sur les 30 derniers jours
+    const since30 = new Date(); since30.setDate(since30.getDate() - 29)
+    since30.setHours(0, 0, 0, 0)
+
+    let dailyCounts = Array(30).fill(0)
+
+    try {
+      const { data: clickRows } = await supabase
+        .from('link_clicks')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', since30.toISOString())
+
+      if (clickRows?.length) {
+        clickRows.forEach(row => {
+          const clickDate = new Date(row.created_at)
+          // Trouver l'index dans le tableau des 30 jours
+          const idx = dates.findIndex(d =>
+            d.getFullYear() === clickDate.getFullYear() &&
+            d.getMonth()    === clickDate.getMonth()    &&
+            d.getDate()     === clickDate.getDate()
+          )
+          if (idx >= 0) dailyCounts[idx]++
+        })
+      }
+    } catch (e) {
+      console.warn('[dashboard] Impossible de charger link_clicks par date:', e)
+    }
+
     lineConfigData = {
-      labels: dates,
+      labels: dateLabels,
       datasets: [{
         label: 'Clics',
-        data: Array(30).fill(0), // Sera rempli avec de vraies données si tu ajoutes clicked_at groupBy
+        data: dailyCounts,
         borderColor: '#f97316',
         backgroundColor: 'rgba(249,115,22,0.07)',
         tension: 0.4,
         fill: true,
-        pointRadius: 0,
+        pointRadius: 2,
+        pointBackgroundColor: '#f97316',
         borderWidth: 1.5
       }]
     }
@@ -353,8 +489,77 @@
     const lineEl = document.getElementById('lineChart')
     const barEl  = document.getElementById('barChart')
 
-    if (lineEl) window._lineChartInst = new Chart(lineEl, { type:'line', data: JSON.parse(JSON.stringify(lineConfigData)), options: JSON.parse(JSON.stringify(lineOptions)) })
-    if (barEl && labels.length)  window._barChartInst  = new Chart(barEl,  { type:'bar',  data: JSON.parse(JSON.stringify(barConfigData)),  options: JSON.parse(JSON.stringify(barOptions))  })
+    if (lineEl) {
+      window._lineChartInst = new Chart(lineEl, {
+        type: 'line',
+        data: JSON.parse(JSON.stringify(lineConfigData)),
+        options: JSON.parse(JSON.stringify(lineOptions))
+      })
+    }
+
+    if (barEl && labels.length) {
+      window._barChartInst = new Chart(barEl, {
+        type: 'bar',
+        data: JSON.parse(JSON.stringify(barConfigData)),
+        options: JSON.parse(JSON.stringify(barOptions))
+      })
+    }
+  }
+
+  // ── Rafraîchir les charts manuellement ───────────────────────────────────
+  window.refreshCharts = async () => {
+    if (!currentUser) return
+    await loadMyLinks()
+  }
+
+  // ── Realtime : écouter les nouveaux clics ─────────────────────────────────
+  function setupRealtime() {
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel)
+    }
+
+    // Écouter les nouveaux enregistrements dans link_clicks pour cet user
+    realtimeChannel = supabase
+      .channel('dash-clicks-' + currentUser.id.slice(0, 8))
+      .on(
+        'postgres_changes',
+        {
+          event:  'INSERT',
+          schema: 'public',
+          table:  'link_clicks',
+          filter: `user_id=eq.${currentUser.id}`
+        },
+        async (payload) => {
+          console.log('[dashboard] Nouveau clic reçu en realtime:', payload.new)
+          // Re-charger les stats et les charts en silence
+          await Promise.all([loadProfileStats(), loadMyLinks()])
+        }
+      )
+      // Écouter aussi les updates du profil (si total_clicks est mis à jour par trigger)
+      .on(
+        'postgres_changes',
+        {
+          event:  'UPDATE',
+          schema: 'public',
+          table:  'profiles',
+          filter: `user_id=eq.${currentUser.id}`
+        },
+        async (payload) => {
+          console.log('[dashboard] Profil mis à jour en realtime:', payload.new)
+          const p = payload.new
+          if (p) {
+            const clicks  = p.total_clicks  ?? 0
+            const sales   = p.total_sales   ?? 0
+            const revenue = p.total_revenue ?? 0
+            document.getElementById('dash-stat-clics-value').textContent  = clicks.toLocaleString('fr-FR')
+            document.getElementById('dash-stat-ventes-value').textContent = sales.toLocaleString('fr-FR')
+            document.getElementById('dash-stat-revenu-value').textContent = revenue.toLocaleString('fr-FR') + ' €'
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[dashboard] Realtime status:', status)
+      })
   }
 
   // ── Expand chart modal ────────────────────────────────────────────────────
@@ -366,10 +571,18 @@
 
     if (type === 'line') {
       titleEl.textContent = 'Évolution des clics (30 derniers jours)'
-      if (lineConfigData) modalChart = new Chart(document.getElementById('modalChart'), { type:'line', data: JSON.parse(JSON.stringify(lineConfigData)), options: JSON.parse(JSON.stringify(lineOptions)) })
+      if (lineConfigData) modalChart = new Chart(document.getElementById('modalChart'), {
+        type: 'line',
+        data: JSON.parse(JSON.stringify(lineConfigData)),
+        options: JSON.parse(JSON.stringify(lineOptions))
+      })
     } else {
       titleEl.textContent = 'Clics par offre'
-      if (barConfigData) modalChart = new Chart(document.getElementById('modalChart'), { type:'bar', data: JSON.parse(JSON.stringify(barConfigData)), options: JSON.parse(JSON.stringify(barOptions)) })
+      if (barConfigData) modalChart = new Chart(document.getElementById('modalChart'), {
+        type: 'bar',
+        data: JSON.parse(JSON.stringify(barConfigData)),
+        options: JSON.parse(JSON.stringify(barOptions))
+      })
     }
   }
 
@@ -379,6 +592,12 @@
   }
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal() })
+
+  // ── Nettoyage quand la SPA quitte la page ─────────────────────────────────
+  // (évite les canaux realtime orphelins si on navigue ailleurs)
+  window.addEventListener('beforeunload', () => {
+    if (realtimeChannel) supabase.removeChannel(realtimeChannel)
+  })
 
   init()
 </script>
