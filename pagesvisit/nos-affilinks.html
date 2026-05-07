@@ -126,7 +126,7 @@
 
   // ── STATE ────────────────────────────────────────────────────────────────
   let currentUser        = null
-  let currentUsername    = null   // ← username récupéré depuis profiles
+  let currentUsername    = null   // username récupéré depuis profiles
   let currentOffer       = null
   let currentTrackingUrl = null
 
@@ -142,8 +142,8 @@
         .select('plan, username')
         .eq('user_id', user.id)
         .single()
-      userPlan = p?.plan || 'free'
-      currentUsername = p?.username || null   // ← on stocke le username
+      userPlan        = p?.plan     || 'free'
+      currentUsername = p?.username || null
       if (p?.username) {
         const el = document.getElementById('hero-username')
         if (el) el.innerHTML = `Bonjour ${p.username},<br/>prêt à te rapprocher<br/>de tes objectifs ?`
@@ -214,10 +214,17 @@
     }
   }
 
-  // ── CONSTRUIRE L'URL DE TRACKING ─────────────────────────────────────────
-  // Format : /api/go?ref=sonusername&offer=OFFER_ID
-  // Le lien est lisible et partageable avec le username de l'utilisateur.
-  // /api/go résout le username en user_id, loggue le clic, puis redirige.
+  // ── CONSTRUIRE LE LIEN DE TRACKING ──────────────────────────────────────
+  // Format : https://myaffilinks-974ld.vercel.app/api/go?ref=USERNAME&offer=OFFER_ID
+  //
+  // Ce lien est celui que l'utilisateur partage sur Instagram, TikTok, etc.
+  // Quand quelqu'un clique dessus (depuis n'importe où) :
+  //   1. Vercel /api/go reçoit le clic → loggue dans link_clicks (Supabase)
+  //   2. Incrémente total_clicks dans profiles
+  //   3. Redirige vers l'URL de l'offre enregistrée dans l'admin
+  //      (ex: mama.com → redirige vers mama.com, destination inchangée)
+  //
+  // 100% des clics sont comptés, peu importe la plateforme source.
   function buildTrackingUrl(offer) {
     const username = currentUsername || currentUser.id
     const base     = window.location.origin
@@ -231,7 +238,6 @@
     currentOffer       = offer
     currentTrackingUrl = null
 
-    // Afficher la modal immédiatement
     document.getElementById('modal-offer-emoji').textContent   = offer.emoji || '📦'
     document.getElementById('modal-offer-title').textContent   = offer.title || '—'
     document.getElementById('modal-offer-company').textContent = offer.company || '—'
@@ -240,12 +246,10 @@
     document.getElementById('modal-clicks').textContent        = '…'
     document.getElementById('link-modal').classList.remove('hidden')
 
-    // Récupérer ou créer l'entrée dans user_links (pour mémoriser que ce user a ce lien)
-    const trackingUrl = await getOrCreateLink(offer)
+    const trackingUrl  = await getOrCreateLink(offer)
     currentTrackingUrl = trackingUrl
     document.getElementById('modal-tracking-url').textContent = trackingUrl
 
-    // Récupérer le vrai nombre de clics depuis Supabase link_clicks
     const clicks = await getClicksFromSupabase(offer.id)
     document.getElementById('modal-clicks').textContent = clicks.toLocaleString('fr-FR')
   }
@@ -254,7 +258,6 @@
   async function getOrCreateLink(offer) {
     const trackingUrl = buildTrackingUrl(offer)
 
-    // Vérifier si déjà en base
     const { data: existing } = await supabase
       .from('user_links')
       .select('tracking_url')
@@ -263,12 +266,11 @@
       .maybeSingle()
 
     if (existing?.tracking_url) {
-      // Migration automatique : si ancien format UUID ou localhost → on met à jour
+      // Migration automatique des anciens formats (localhost, yourls, UUID brut)
       const isOldFormat = existing.tracking_url.includes('localhost')
         || existing.tracking_url.includes('yourls')
-        || existing.tracking_url.includes(currentUser.id) // ancien ref=UUID
+        || !existing.tracking_url.includes('/api/go')
       if (isOldFormat) {
-        console.log('[affilinks] Migration du lien vers format ref=username')
         await supabase
           .from('user_links')
           .update({ tracking_url: trackingUrl })
@@ -279,22 +281,20 @@
       return existing.tracking_url
     }
 
-    // Nouveau lien → insérer
-    const { error: insertErr } = await supabase
+    // Nouveau → insérer
+    const { error } = await supabase
       .from('user_links')
       .insert({
         user_id:      currentUser.id,
         offer_id:     offer.id,
         tracking_url: trackingUrl,
       })
-
-    if (insertErr) console.error('[affilinks] Supabase insert user_links:', insertErr)
+    if (error) console.error('[affilinks] insert user_links:', error)
 
     return trackingUrl
   }
 
   // ── COMPTER LES CLICS DEPUIS SUPABASE ────────────────────────────────────
-  // go.js insère dans link_clicks à chaque visite → on compte ici
   async function getClicksFromSupabase(offerId) {
     try {
       const { count } = await supabase
@@ -321,9 +321,8 @@
     }
   }
 
-  // ── ALLER SUR L'OFFRE (via le lien de tracking) ───────────────────────────
-  // Le clic passe par /api/go → logged dans link_clicks → Supabase realtime
-  // → dashboard se met à jour automatiquement
+  // ── ALLER SUR L'OFFRE ─────────────────────────────────────────────────────
+  // L'utilisateur clique → passe par /api/go → clic loggué → redirigé vers l'offre
   window.goToOffer = () => {
     if (!currentTrackingUrl) return
     window.open(currentTrackingUrl, '_blank')
