@@ -71,11 +71,10 @@ export default async function handler(req, res) {
       return res.redirect(302, offer.url)
     }
 
-    // ── 3. URL finale = URL de l'offre + ?ref=username ───────────────────
-    // amazon.com?tag=toncode → amazon.com?tag=toncode&ref=sonusername
-    // Même destination, mais permet de différencier les clics par utilisateur
-    const separator = offer.url.includes('?') ? '&' : '?'
-    const finalUrl  = `${offer.url}${separator}ref=${encodeURIComponent(refParam)}`
+    // ── 3. URL finale = URL de l'offre exacte, sans modification ─────────
+    // On ne touche PAS à l'URL de destination.
+    // Le tracking est fait en amont (link_clicks + total_clicks).
+    const finalUrl = offer.url
 
     // ── 4. Insérer le clic dans link_clicks (non-bloquant) ────────────────
     const clickPromise = supabase
