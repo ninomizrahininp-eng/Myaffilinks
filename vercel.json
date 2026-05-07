@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/go.js": {
-      "runtime": "nodejs20.x"
+      "runtime": "@vercel/node@5.0.0"
     }
   }
 }
