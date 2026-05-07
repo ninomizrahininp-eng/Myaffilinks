@@ -71,7 +71,9 @@ export default async function handler(req, res) {
       return res.redirect(302, offer.url)
     }
 
-    // ── 3. URL finale avec ?ref=username ──────────────────────────────────
+    // ── 3. URL finale = URL de l'offre + ?ref=username ───────────────────
+    // amazon.com?tag=toncode → amazon.com?tag=toncode&ref=sonusername
+    // Même destination, mais permet de différencier les clics par utilisateur
     const separator = offer.url.includes('?') ? '&' : '?'
     const finalUrl  = `${offer.url}${separator}ref=${encodeURIComponent(refParam)}`
 
